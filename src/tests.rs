@@ -292,3 +292,142 @@ mod string_tests {
         assert_eq!(byte_refs, vec![&b'a', &b'b', &b'c']);
     }    
 }
+
+#[cfg(test)]
+mod inf_named_bools_tests {
+    use crate::inf_named_bools::BNInf;
+    use anyhow::Result;
+    use crate::error::BBoolError;
+
+    #[test]
+    fn test_new_and_default() {
+        let bool = BNInf::new();
+        assert!(bool.bools.store.is_empty());
+        assert!(bool.all_names().is_empty());
+    }
+
+    #[test]
+    fn test_from_vec() {
+        let initial = vec![5u8]; // Binary: 00000101
+        let bool = BNInf::from_vec(initial.clone());
+        assert_eq!(bool.bools.store, initial);
+        assert!(bool.all_names().is_empty());
+    }
+
+    #[test]
+    fn test_get_set_operations() -> Result<(), BBoolError> {
+        let mut bool = BNInf::new();
+        
+        // Test setting and getting named values
+        bool.set("test1", true)?;
+        assert!(bool.get("test1")?);
+        
+        bool.set("test2", false)?;
+        assert!(!bool.get("test2")?);
+        
+        // Test updating existing value
+        bool.set("test1", false)?;
+        assert!(!bool.get("test1")?);
+        
+        Ok(())
+    }
+
+    #[test]
+    fn test_mass_operations() -> Result<()> {
+        let mut bool = BNInf::new();
+        
+        // Test mass_set
+        bool.mass_set(3, "test_{n}", "true,false{r}")?;
+        assert!(bool.get("test_0")?);
+        assert!(!bool.get("test_1")?);
+        assert!(bool.get("test_2")?);
+        
+        // Test mass_get
+        let values = bool.mass_get(&["test_0", "test_1", "test_2"])?;
+        assert_eq!(values, vec![true, false, true]);
+        
+        // Test mass_toggle
+        bool.mass_toggle(&["test_0", "test_1"])?;
+        assert!(!bool.get("test_0")?);
+        assert!(bool.get("test_1")?);
+        
+        Ok(())
+    }
+
+    #[test]
+    fn test_all_and_sorted() -> Result<()> {
+        let mut bool = BNInf::new();
+        
+        // Set up test data
+        bool.set("c", true)?;
+        bool.set("a", false)?;
+        bool.set("b", true)?;
+        
+        // Test all()
+        let all_pairs = bool.all()?;
+        assert_eq!(all_pairs.len(), 3);
+        assert!(!all_pairs["a"]);
+        assert!(all_pairs["b"]);
+        assert!(all_pairs["c"]);
+        
+        // Test sorted()
+        let mut sorted = bool.sorted()?;
+        let sorted_pairs = sorted.all()?;
+        let mut keys: Vec<_> = sorted_pairs.keys().collect();
+        keys.sort();
+        assert_eq!(keys, vec!["a", "b", "c"]);
+        
+        Ok(())
+    }
+
+    #[test]
+    fn test_exists_and_delete() -> Result<()> {
+        let mut bool = BNInf::new();
+        
+        bool.set("test", true)?;
+        assert!(bool.exists("test"));
+        
+        bool.delete("test")?;
+        assert!(!bool.exists("test"));
+        
+        Ok(())
+    }
+
+    #[test]
+    fn test_raw_access() {
+        let mut bool = BNInf::from_vec(vec![5]); // Binary: 00000101
+        
+        assert_eq!(bool.get_raw(), &vec![5]);
+        
+        let raw_mut = bool.get_raw_mut();
+        raw_mut[0] = 3; // Binary: 00000011
+        assert_eq!(bool.get_raw(), &vec![3]);
+    }
+
+    #[test]
+    fn test_clear() -> Result<()> {
+        let mut bool = BNInf::new();
+        bool.set("test1", true)?;
+        bool.set("test2", true)?;
+        
+        bool.clear();
+        assert!(bool.all_names().is_empty());
+        assert!(bool.bools.store.is_empty());
+        
+        Ok(())
+    }
+
+    #[test]
+    fn test_error_conditions() -> Result<()> {
+        let mut bool = BNInf::new();
+        
+        // Test getting non-existent name
+        assert!(bool.get("nonexistent").is_err());
+        
+        // Test invalid pattern in mass_set
+        assert!(bool.mass_set(3, "test", "true,false{r}").is_err()); // Missing {n}
+        assert!(bool.mass_set(3, "test_{n}", "true").is_err()); // Insufficient values
+        
+        Ok(())
+    }
+}

@@ -1,9 +1,9 @@
 [package]
 name = "btypes"
-version = "0.2.4"
+version = "0.3.4"
 edition = "2021"
 authors = ["A User"]
-description = "For when you dislike normal types, I guess."
+description = "Better types (BTypes) for when you dislike normal types, I guess."
 license = "GPL-3.0"
 repository = "https://github.com/afemboylol/btypes"
 
@@ -23,12 +23,18 @@ path = "examples/low_cap_bool_ex.rs"
 name = "s"
 path = "examples/string_ex.rs"
 
+[[example]]
+name = "icb"
+path = "examples/inf_cap_bool_ex.rs"
+
 [features]
 default = []
 named_bools = ["bools"]
 bools = []
 strings = []
-all = ["named_bools", "bools", "strings"]
+inf_bools = []
+inf_named_bools = ["inf_bools"]
+all = ["named_bools", "bools", "strings", "inf_bools", "inf_named_bools"]
 
 [dependencies]
 anyhow = "1.0.93"

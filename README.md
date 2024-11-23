@@ -38,8 +38,8 @@ Features include:
 
 ## Coming Soon
 - Any user suggestions I am capable of
-- Infinite capacity BetterBool?
 - More string operations and utilities
+- More bool operations and utilities (especially for the infinite bools)
 
 ## Usage Examples
 

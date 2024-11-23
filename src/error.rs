@@ -14,6 +14,8 @@ pub enum BStringError {
 pub enum BBoolError {
     InvalidHeadPos(u8),
     InvalidPos(u8),
+    InvalidHeadPosInf(u128),
+    InvalidPosInf(u128),
     NotFound(String),
     InvalidPattern(String),
     CollectionCapacityReached,
@@ -25,6 +27,8 @@ impl Display for BBoolError {
         write!(f, "{}", match self {
             BBoolError::InvalidHeadPos(pos) => format!("Invalid head position: {}", pos),
             BBoolError::InvalidPos(pos) => format!("Invalid position: {}", pos),
+            BBoolError::InvalidHeadPosInf(pos) => format!("Invalid head position: {}", pos),
+            BBoolError::InvalidPosInf(pos) => format!("Invalid position: {}", pos),
             BBoolError::NotFound(item) => format!("Item not found: {}", item),
             BBoolError::InvalidPattern(pat) => format!("Invalid pattern: {}", pat),
             BBoolError::CollectionCapacityReached => "Collection capacity has been reached".to_string(),
