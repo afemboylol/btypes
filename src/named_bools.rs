@@ -31,6 +31,18 @@ pub struct BetterBoolNamed<T: Nums> {
     _next_assign: u8,
 }
 
+impl<T: Nums> Default for BetterBoolNamed<T>
+{
+    fn default() -> Self {
+        Self
+        {
+            bools: Default::default(),
+            names: HashMap::new(),
+            _next_assign: 0,
+        }
+    }
+}
+
 impl<T: BitwiseOpsCopy> BetterBoolNamed<T> {
     /// Creates a new BetterBoolNamed instance with a specified initial value.
     ///
@@ -62,16 +74,7 @@ impl<T: BitwiseOpsCopy> BetterBoolNamed<T> {
     /// let bools = BN128::new();
     /// ```
     pub fn new() -> Self {
-        let bools = BetterBool::<T> {
-            store: T::zero(),
-            reader_head_pos: 0,
-            _marker: PhantomData,
-        };
-        Self {
-            bools,
-            names: HashMap::new(),
-            _next_assign: 0,
-        }
+        Default::default()
     }
     /// Set/add many named bools, with the names being dictated by the pattern and the values by the value pattern.
     ///
@@ -124,7 +127,7 @@ impl<T: BitwiseOpsCopy> BetterBoolNamed<T> {
                 "Value pattern cannot be empty".to_string(),
             ));
         }
-        if !value_pattern.contains(&"{r}") && value_parts.len() < count.into() {
+        if !value_pattern.contains("{r}") && value_parts.len() < count.into() {
             println!("{}, {}", !value_parts.contains(&"{r}"), value_parts.len());
             return Err(BBoolError::InvalidPattern(
                 "Value pattern must be able to fill all set bools".to_string(),
@@ -302,7 +305,7 @@ impl<T: BitwiseOpsCopy> BetterBoolNamed<T> {
     /// let names = bools.all_names_cl();
     /// ```
     pub fn all_names_cl(&self) -> HashMap<String, u8> {
-        return self.names.clone();
+        self.names.clone()
     }
     /// Returns a reference to the internal name-to-position mapping.
     ///
@@ -313,7 +316,7 @@ impl<T: BitwiseOpsCopy> BetterBoolNamed<T> {
     /// let names = bools.all_names();
     /// ```
     pub fn all_names(&self) -> &HashMap<String, u8> {
-        return &self.names;
+        &self.names
     }
     /// Returns a mutable reference to the internal name-to-position mapping.
     ///
@@ -324,7 +327,7 @@ impl<T: BitwiseOpsCopy> BetterBoolNamed<T> {
     /// let names_mut = bools.all_names_mut();
     /// ```
     pub fn all_names_mut(&mut self) -> &mut HashMap<String, u8> {
-        return &mut self.names;
+        &mut self.names
     }
     /// Returns a HashMap containing all name-value pairs in the collection.
     ///
@@ -372,7 +375,7 @@ impl<T: BitwiseOpsCopy> BetterBoolNamed<T> {
     /// * Setting the value fails
     /// * Adding a new value fails
     pub fn set(&mut self, name: &str, value: bool) -> Result<()> {
-        match self.names.get(&name.to_string()) {
+        match self.names.get(name) {
             Some(&position) => self.bools.set_at_pos(position, value)?,
             None => self.add(name, value)?,
         }

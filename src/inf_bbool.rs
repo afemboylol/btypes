@@ -369,7 +369,7 @@ impl BetterBoolInf {
     /// use anyhow::Result;
     /// fn main() -> Result<()> {
     /// let mut bools = BInf::from_vec(vec![5]);
-    /// let value = bools.next()?;
+    /// let value = bools.next_b()?;
     /// Ok(())
     /// }
     /// ```
@@ -378,7 +378,7 @@ impl BetterBoolInf {
     /// Returns an error if:
     /// * Getting the current value fails
     /// * Incrementing the head position fails
-    pub fn next(&mut self) -> Result<bool> {
+    pub fn next_b(&mut self) -> Result<bool> {
         let val = self.get()?;
         self.inc()?;
         Ok(val)
@@ -392,7 +392,7 @@ impl BetterBoolInf {
     /// use anyhow::Result;
     /// fn main() -> Result<()> {
     /// let mut bools = BInf::from_vec(vec![5]);
-    /// let value = bools.next_res()?;
+    /// let value = bools.next_b_res()?;
     /// Ok(())
     /// }
     /// ```
@@ -402,7 +402,7 @@ impl BetterBoolInf {
     /// * Getting the current value fails
     /// * Setting the value fails
     /// * Incrementing the head position fails
-    pub fn next_res(&mut self) -> Result<bool> {
+    pub fn next_b_res(&mut self) -> Result<bool> {
         let val = self.get()?;
         self.set(false)?;
         self.inc()?;

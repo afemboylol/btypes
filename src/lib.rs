@@ -1,3 +1,32 @@
+#![doc = "# btypes - Enhanced Types for Rust
+
+This crate provides enhanced implementations of boolean collections and string types,
+offering additional functionality beyond the standard library implementations.
+
+## Features
+
+* `named_bools` - Fixed-capacity named boolean collections (8 to 128 bits)
+* `bools` - Fixed-capacity boolean collections (8 to 128 bits)
+* `inf_bools` - Dynamically-sized boolean collections
+* `inf_named_bools` - Dynamically-sized named boolean collections
+* `strings` - Enhanced string type with additional functionality
+
+## Example Usage
+
+```rust
+use btypes::named_bools::BN128;
+use anyhow::Result;
+
+fn main() -> Result<()> {
+    let mut bools = BN128::new();
+    bools.set(\"flag1\", true)?;
+    bools.set(\"flag2\", false)?;
+    Ok(())
+}
+```
+
+For more examples, see the individual module documentation.
+"]
 #[cfg(feature = "named_bools")]
 /// Named boolean collections with fixed capacity
 ///
@@ -105,5 +134,7 @@ pub mod bstring;
 /// various features and implementations.
 pub mod error;
 
+/// Tests for the README.md
 mod readmedoctest;
+/// Tests for the entire library
 mod tests;

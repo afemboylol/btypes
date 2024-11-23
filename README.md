@@ -1,6 +1,6 @@
 # btypes
 
-A Rust library providing enhanced types with rich functionality for string manipulation and boolean state management.
+A Rust library providing enhanced types with rich functionality for string manipulation and boolean state management, with more types coming soon.
 
 ## Key Features
 

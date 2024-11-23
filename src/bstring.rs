@@ -1,7 +1,4 @@
-//! BetterString - A more feature-rich string type for Rust
-//!
-//! This module provides an enhanced string type with additional operations
-//! and utility methods not found in the standard String type.
+// TODO: doc comments, fix warnings according to cargo clippy --all-features -- -W missing_docs
 
 use crate::error::BStringError;
 use base64::engine::general_purpose;
@@ -375,7 +372,8 @@ impl DivAssign<&str> for BetterString {
     fn div_assign(&mut self, rhs: &str) {
         if let Ok(s) = std::str::from_utf8(&self.bytes) {
             if let Some(first_pos) = s.find(rhs) {
-                let new_s = format!("{}{}", &s[..first_pos], &s[first_pos + rhs.len()..]);
+                let end_pos = first_pos.saturating_add(rhs.len());
+                let new_s = format!("{}{}", &s[..first_pos], &s[end_pos..]);
                 self.bytes = new_s.into_bytes();
             }
         }
@@ -465,24 +463,36 @@ impl<'a> IntoIterator for &'a BetterString {
 
 // Add byte-related methods
 impl BetterString {
+    // Returns a reference to the underlying bytes of the string
+    ///
+    /// This method provides direct access to the raw bytes that make up the string.
     pub fn as_bytes(&self) -> &[u8] {
         &self.bytes
     }
-
+    /// Returns a mutable reference to the underlying bytes of the string
+    ///
+    /// # Warning
+    /// Modifying the bytes directly may lead to invalid UTF-8 sequences
     pub fn as_bytes_mut(&mut self) -> &mut Vec<u8> {
         &mut self.bytes
     }
-
+    /// Consumes the string and returns the underlying byte vector
+    ///
+    /// This method transfers ownership of the internal bytes to the caller
     pub fn into_bytes(self) -> Vec<u8> {
         self.bytes
     }
-
+    /// Returns an iterator over the characters of the string
+    ///
+    /// If the string contains invalid UTF-8, returns an iterator over an empty string
     pub fn chars(&self) -> std::str::Chars<'_> {
         std::str::from_utf8(&self.bytes)
             .map(|s| s.chars())
             .unwrap_or_else(|_| "".chars())
     }
-
+    /// Returns an iterator over the characters of the string with their byte indices
+    ///
+    /// If the string contains invalid UTF-8, returns an iterator over an empty string
     pub fn char_indices(&self) -> std::str::CharIndices<'_> {
         std::str::from_utf8(&self.bytes)
             .map(|s| s.char_indices())
@@ -492,6 +502,20 @@ impl BetterString {
 
 // TODO: Add remaining safe methods, make them standard instead of separate
 impl BetterString {
+    /// Safely splits the string by the given delimiter
+    ///
+    /// # Arguments
+    /// * `delimiter` - The string to split on
+    ///
+    /// # Returns
+    /// * `Ok(Vec<String>)` - A vector of split strings
+    /// * `Err(BStringError)` - If the string is empty or the delimiter is invalid
+    ///
+    /// # Errors
+    /// Returns an error if:
+    /// * The string is empty
+    /// * The delimiter is empty
+    /// * The string contains invalid UTF-8
     pub fn safe_split(&self, delimiter: &str) -> Result<Vec<String>, BStringError> {
         if self.is_empty() {
             return Err(BStringError::EmptyString);
@@ -510,9 +534,9 @@ impl BetterString {
 }
 
 // Implement Into<String>
-impl Into<String> for BetterString {
-    fn into(self) -> String {
-        String::from_utf8(self.bytes).unwrap_or_default()
+impl From<BetterString> for String {
+    fn from(val: BetterString) -> Self {
+        String::from_utf8(val.bytes).unwrap_or_default()
     }
 }
 

@@ -11,6 +11,7 @@ pub type BNInf = BetterBoolNamedInf;
 ///
 /// This struct combines the unlimited capacity of BetterBoolInf with
 /// the ability to access boolean values by name rather than position.
+#[derive(Default)]
 pub struct BetterBoolNamedInf {
     /// The underlying boolean storage
     pub bools: BetterBoolInf,
@@ -54,16 +55,7 @@ impl BetterBoolNamedInf {
     /// ```
     ///
     pub fn new() -> Self {
-        let bools = BetterBoolInf {
-            store: Vec::new(),
-            reader_head_pos: 0,
-            _marker: PhantomData,
-        };
-        Self {
-            bools,
-            names: HashMap::new(),
-            _next_assign: 0,
-        }
+        Default::default()
     }
 
     /// Set/add many named bools, with the names being dictated by the pattern and the values by the value pattern.
@@ -115,7 +107,7 @@ impl BetterBoolNamedInf {
                 "Value pattern cannot be empty".to_string(),
             ));
         }
-        if !value_pattern.contains(&"{r}") && value_parts.len() < count as usize {
+        if !value_pattern.contains("{r}") && value_parts.len() < count as usize {
             println!("{}, {}", !value_parts.contains(&"{r}"), value_parts.len());
             return Err(BBoolError::InvalidPattern(
                 "Value pattern must be able to fill all set bools".to_string(),
@@ -296,7 +288,7 @@ impl BetterBoolNamedInf {
     /// ```
     ///
     pub fn all_names_cl(&self) -> HashMap<String, u128> {
-        return self.names.clone();
+        self.names.clone()
     }
 
     /// Returns a reference to the internal name-to-position mapping.
@@ -309,7 +301,7 @@ impl BetterBoolNamedInf {
     /// ```
     ///
     pub fn all_names(&self) -> &HashMap<String, u128> {
-        return &self.names;
+        &self.names
     }
 
     /// Returns a mutable reference to the internal name-to-position mapping.
@@ -322,7 +314,7 @@ impl BetterBoolNamedInf {
     /// ```
     ///
     pub fn all_names_mut(&mut self) -> &mut HashMap<String, u128> {
-        return &mut self.names;
+        &mut self.names
     }
 
     /// Returns all name-value pairs in the collection.
@@ -369,7 +361,7 @@ impl BetterBoolNamedInf {
     /// # Errors
     /// Returns an error if setting the value fails
     pub fn set(&mut self, name: &str, value: bool) -> Result<()> {
-        match self.names.get(&name.to_string()) {
+        match self.names.get(name) {
             Some(&position) => self.bools.set_at_pos(position, value)?,
             None => self.add(name, value)?,
         }
