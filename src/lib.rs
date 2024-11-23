@@ -29,3 +29,4 @@ pub mod error;
 
 
 mod tests;
+mod readmedoctest;
