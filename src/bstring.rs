@@ -3,7 +3,7 @@ use base64::engine::general_purpose;
 use base64::Engine;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Error};
-use std::ops::{Add, AddAssign, Div, DivAssign, Index, Mul, MulAssign, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Deref, DerefMut, Div, DivAssign, Index, Mul, MulAssign, Sub, SubAssign};
 use std::str::FromStr;
 
 /// A more convenient alias for `BetterString`
@@ -766,5 +766,43 @@ impl FromStr for BetterString {
         Ok(Self {
             bytes: s.as_bytes().to_vec(),
         })
+    }
+}
+
+impl AsRef<[u8]> for BetterString
+{
+    fn as_ref(&self) -> &[u8] {
+        &self.bytes
+    }
+}
+impl AsMut<[u8]> for BetterString
+{
+    fn as_mut(&mut self) -> &mut [u8] {
+        &mut self.bytes
+    }
+}
+
+impl From<Vec<u8>> for BetterString
+{
+    fn from(value: Vec<u8>) -> Self {
+        Self
+        {
+            bytes: value
+        }
+    }
+}
+
+// TODO: see if this is correct or not
+impl Deref for BetterString
+{
+    type Target = Vec<u8>;
+    fn deref(&self) -> &Self::Target {
+        &self.bytes
+    }
+}
+impl DerefMut for BetterString
+{
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.bytes
     }
 }

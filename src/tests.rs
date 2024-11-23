@@ -66,7 +66,7 @@ mod bool_tests {
 
     #[test]
     fn test_error_handling() {
-        let mut bools = BN128::new();
+        let bools = BN128::new();
 
         // Test getting nonexistent bool
         assert!(bools.get("nonexistent").is_err());
@@ -373,7 +373,7 @@ mod inf_named_bools_tests {
         assert!(all_pairs["c"]);
 
         // Test sorted()
-        let mut sorted = bool.sorted()?;
+        let sorted = bool.sorted()?;
         let sorted_pairs = sorted.all()?;
         let mut keys: Vec<_> = sorted_pairs.keys().collect();
         keys.sort();

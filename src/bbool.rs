@@ -1,6 +1,7 @@
 use crate::error::BBoolError;
 use crate::traits::{BitwiseOpsClone, BitwiseOpsCopy, Nums};
 use anyhow::Result;
+use std::fmt::Display;
 use std::marker::PhantomData;
 
 /// Type alias for a 128-bit `BetterBool`
@@ -20,6 +21,7 @@ pub type BBool<T> = BetterBool<T>;
 ///
 /// This struct provides bit-level boolean storage and operations using
 /// various integer types as the underlying storage mechanism.
+#[derive(Debug, Clone, Copy)]
 pub struct BetterBool<T: Nums> {
     /// The numeric value storing the boolean bits
     pub(crate) store: T,
@@ -95,7 +97,7 @@ impl<T: BitwiseOpsCopy> BetterBool<T> {
     ///
     /// # Errors
     /// Returns an error if accessing any position fails
-    pub fn all(&mut self) -> Result<Vec<bool>> {
+    pub fn all(&self) -> Result<Vec<bool>> {
         let mut out = vec![];
         for i in 0..Self::CAP {
             out.push(self.get_at_pos(i)?);
@@ -118,7 +120,7 @@ impl<T: BitwiseOpsCopy> BetterBool<T> {
     ///
     /// # Errors
     /// Returns an error if sorting operation fails
-    pub fn sorted(&mut self) -> Result<Self> {
+    pub fn sorted(&self) -> Result<Self> {
         let mut bools = self.all()?;
         bools.sort_unstable();
 
@@ -559,5 +561,21 @@ impl<T: BitwiseOpsClone> BetterBool<T> {
     /// ```
     pub fn get_raw_cl(&self) -> T {
         self.store.clone()
+    }
+}
+
+impl<T: BitwiseOpsCopy> Display for BetterBool<T>
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:#?}", self.all())
+    }
+}
+
+impl<T: BitwiseOpsCopy> IntoIterator for BetterBool<T>
+{
+    type Item = bool;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.all().expect("Failed to get all bool values contained").into_iter()
     }
 }

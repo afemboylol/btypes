@@ -1,6 +1,7 @@
 use crate::error::BBoolError;
 use anyhow::Result;
 use std::marker::PhantomData;
+use std::fmt::Display;
 
 /// Type alias for the infinite-capacity `BetterBool` implementation
 pub type BInf = BetterBoolInf;
@@ -9,6 +10,7 @@ pub type BInf = BetterBoolInf;
 ///
 /// This struct provides storage and operations for boolean values with
 /// virtually unlimited capacity, growing as needed.
+#[derive(Clone, Debug)]
 pub struct BetterBoolInf {
     /// The vector storing the boolean bits as bytes
     pub(crate) store: Vec<u8>,
@@ -78,7 +80,7 @@ impl BetterBoolInf {
     ///
     /// # Errors
     /// Returns an error if accessing any position fails
-    pub fn all(&mut self) -> Result<Vec<bool>> {
+    pub fn all(&self) -> Result<Vec<bool>> {
         let mut out = vec![];
         // Multiply by 8 since each byte contains 8 bits
         for i in 0..(self.store.len() * 8) {
@@ -102,7 +104,7 @@ impl BetterBoolInf {
     ///
     /// # Errors
     /// Returns an error if sorting operation fails
-    pub fn sorted(&mut self) -> Result<Self> {
+    pub fn sorted(&self) -> Result<Self> {
         let mut bools = self.all()?;
         bools.sort_unstable();
 
@@ -514,5 +516,21 @@ impl BetterBoolInf {
     ///
     pub fn clear(&mut self) {
         self.store.clear();
+    }
+}
+
+impl Display for BetterBoolInf
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:#?}", self.all())
+    }
+}
+
+impl IntoIterator for BetterBoolInf
+{
+    type Item = bool;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.all().expect("Failed to get all bool values contained").into_iter()
     }
 }

@@ -22,6 +22,7 @@ pub type BNBool<T> = BetterBoolNamed<T>;
 ///
 /// This struct combines the fixed-size storage of `BetterBool` with the ability
 /// to access boolean values by name rather than position.
+#[derive(Clone, Debug)]
 pub struct BetterBoolNamed<T: Nums> {
     /// The underlying boolean storage
     pub bools: BetterBool<T>,
@@ -185,7 +186,7 @@ impl<T: BitwiseOpsCopy> BetterBoolNamed<T> {
     /// Returns an error if:
     /// * Any of the names don't exist in the collection
     /// * Retrieving any value fails
-    pub fn mass_get(&mut self, names: &[&str]) -> Result<Vec<bool>> {
+    pub fn mass_get(&self, names: &[&str]) -> Result<Vec<bool>> {
         let mut out = Vec::with_capacity(names.len());
         for name in names {
             out.push(self.get(name)?);
@@ -261,7 +262,7 @@ impl<T: BitwiseOpsCopy> BetterBoolNamed<T> {
     ///
     /// # Errors
     /// Returns an error if the sorting operation fails
-    pub fn sorted(&mut self) -> Result<Self> {
+    pub fn sorted(&self) -> Result<Self> {
         // Get all name-value pairs and sort them by name
         let mut pairs: Vec<_> = self.all()?.into_iter().collect();
         pairs.sort_by(|(a, _), (b, _)| a.cmp(b));
@@ -293,7 +294,7 @@ impl<T: BitwiseOpsCopy> BetterBoolNamed<T> {
     ///
     /// # Errors
     /// Returns an error if retrieving any boolean value fails
-    pub fn all_bools(&mut self) -> Result<Vec<bool>> {
+    pub fn all_bools(&self) -> Result<Vec<bool>> {
         self.bools.all()
     }
     /// Returns a clone of the internal name-to-position mapping.
@@ -345,7 +346,7 @@ impl<T: BitwiseOpsCopy> BetterBoolNamed<T> {
     ///
     /// # Errors
     /// Returns an error if retrieving any boolean value fails
-    pub fn all(&mut self) -> Result<HashMap<String, bool>> {
+    pub fn all(&self) -> Result<HashMap<String, bool>> {
         let mut result = HashMap::new();
         for (name, &position) in &self.names {
             result.insert(name.clone(), self.bools.get_at_pos(position)?);
@@ -419,7 +420,7 @@ impl<T: BitwiseOpsCopy> BetterBoolNamed<T> {
     /// let mut bools = BN128::new();
     /// let exists = bools.exists("test");
     /// ```
-    pub fn exists(&mut self, name: &str) -> bool {
+    pub fn exists(&self, name: &str) -> bool {
         self.names.contains_key(name)
     }
     /// Gets an immutable reference to the raw numeric storage.
@@ -496,7 +497,7 @@ impl<T: BitwiseOpsCopy> BetterBoolNamed<T> {
     /// Returns an error if:
     /// * The name doesn't exist in the collection
     /// * Retrieving the value fails
-    pub fn get(&mut self, name: &str) -> Result<bool, BBoolError> {
+    pub fn get(&self, name: &str) -> Result<bool, BBoolError> {
         match self.names.get(name) {
             Some(&position) => Ok(self.bools.get_at_pos(position)?),
             None => Err(BBoolError::NotFound(name.to_string())),
@@ -557,7 +558,7 @@ impl<T: BitwiseOpsClone> BetterBoolNamed<T> {
     /// Returns an error if:
     /// * The name doesn't exist in the collection
     /// * Retrieving the value fails
-    pub fn get_cl(&mut self, name: &str) -> Result<bool, BBoolError> {
+    pub fn get_cl(&self, name: &str) -> Result<bool, BBoolError> {
         match self.names.get(name) {
             Some(&position) => Ok(self.bools.get_cl_at_pos(position)?),
             None => Err(BBoolError::NotFound(name.to_string())),
@@ -574,4 +575,14 @@ impl<T: BitwiseOpsClone> BetterBoolNamed<T> {
     pub fn get_raw_cl(&self) -> T {
         self.bools.get_raw_cl()
     }
+}
+
+impl<T: BitwiseOpsCopy> IntoIterator for BetterBoolNamed<T>
+{
+    type Item = (String, bool);
+    type IntoIter = std::collections::hash_map::IntoIter<String, bool>;
+    
+    fn into_iter(self) -> Self::IntoIter {
+        self.all().expect("Failed to get all contained bools").into_iter()
+    }   
 }
