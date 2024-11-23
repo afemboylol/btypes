@@ -1,0 +1,29 @@
+[package]
+name = "btypes"
+version = "0.1.0"
+edition = "2021"
+authors = ["A User"]
+description = "For when you dislike normal types, I guess."
+license = "GPL-3.0"
+
+[lib]
+name = "btypes"
+path = "src/lib.rs"
+
+[[example]]
+name = "main_ex"
+path = "examples/main_ex.rs"
+
+[[example]]
+name = "lc_ex"
+path = "examples/low_cap_ex.rs"
+
+[features]
+default = []
+named_bools = ["bools"]
+bools = []
+all = ["named_bools", "bools"]
+
+[dependencies]
+anyhow = "1.0.93"
+num-traits = "0.2.19"
