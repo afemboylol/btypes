@@ -41,6 +41,8 @@ impl<T: Nums> Default for BetterBool<T> {
 
 impl<T: Nums> BetterBool<T> {
     /// The capacity of the bool, in bits / count of bools it can hold.
+    // Able to allow because size_of::<T> will never exceed 16 with built in types, and thus 128 after the times 8, half the limit of u8.
+    #[allow(clippy::cast_possible_truncation)]
     pub const CAP: u8 = (size_of::<T>() * 8) as u8;
 }
 
@@ -122,6 +124,8 @@ impl<T: BitwiseOpsCopy> BetterBool<T> {
 
         let mut sorted = Self::new();
         for (i, &value) in bools.iter().enumerate() {
+            // Able to allow as i will never exceed 128 with normal usage.
+            #[allow(clippy::cast_possible_truncation)]
             sorted.set_at_pos(i as u8, value)?;
         }
         Ok(sorted)

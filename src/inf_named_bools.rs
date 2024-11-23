@@ -18,7 +18,7 @@ pub struct BetterBoolNamedInf {
     /// Mapping of names to boolean positions
     names: HashMap<String, u128>,
     /// Next available position for new boolean values
-    _next_assign: u128,
+    next_assign: u128,
 }
 
 impl BetterBoolNamedInf {
@@ -42,7 +42,7 @@ impl BetterBoolNamedInf {
         Self {
             bools,
             names: HashMap::new(),
-            _next_assign: 0,
+            next_assign: 0,
         }
     }
 
@@ -55,7 +55,7 @@ impl BetterBoolNamedInf {
     /// ```
     ///
     #[must_use] pub fn new() -> Self {
-        Default::default()
+        Self::default()
     }
 
     /// Set/add many named bools, with the names being dictated by the pattern and the values by the value pattern.
@@ -131,7 +131,7 @@ impl BetterBoolNamedInf {
                 (i as usize) % values.len()
             } else {
                 if i as usize >= values.len() {
-                    let last = values.last().unwrap();
+                    let last = values.last().ok_or_else(|| BBoolError::Other("Failed to get last element of values.".to_string()))?;
                     self.set(&name, *last)?;
                     continue;
                 }
@@ -460,9 +460,9 @@ impl BetterBoolNamedInf {
         if self.names.len() >= u128::MAX as usize {
             return Err(BBoolError::CollectionCapacityReached);
         }
-        self.names.insert(name.to_string(), self._next_assign);
-        self.bools.set_at_pos(self._next_assign, value)?;
-        self._next_assign += 1;
+        self.names.insert(name.to_string(), self.next_assign);
+        self.bools.set_at_pos(self.next_assign, value)?;
+        self.next_assign += 1;
         Ok(())
     }
 

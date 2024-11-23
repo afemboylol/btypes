@@ -28,7 +28,7 @@ pub struct BetterBoolNamed<T: Nums> {
     /// Mapping of names to boolean positions
     names: HashMap<String, u8>,
     /// Next available position for new boolean values
-    _next_assign: u8,
+    next_assign: u8,
 }
 
 impl<T: Nums> Default for BetterBoolNamed<T>
@@ -38,7 +38,7 @@ impl<T: Nums> Default for BetterBoolNamed<T>
         {
             bools: BetterBool::default(),
             names: HashMap::new(),
-            _next_assign: 0,
+            next_assign: 0,
         }
     }
 }
@@ -63,7 +63,7 @@ impl<T: BitwiseOpsCopy> BetterBoolNamed<T> {
         Self {
             bools,
             names: HashMap::new(),
-            _next_assign: 0,
+            next_assign: 0,
         }
     }
     /// Creates a new empty `BetterBoolNamed` instance initialized with zeros.
@@ -152,7 +152,7 @@ impl<T: BitwiseOpsCopy> BetterBoolNamed<T> {
                 (i as usize) % values.len()
             } else {
                 if i as usize >= values.len() {
-                    let last = values.last().unwrap();
+                    let last = values.last().ok_or_else(|| BBoolError::Other("Failed to get last element of values.".to_string()))?;
                     self.set(&name, *last)?;
                     continue;
                 }
@@ -469,9 +469,9 @@ impl<T: BitwiseOpsCopy> BetterBoolNamed<T> {
         if self.names.len() >= 128 {
             return Err(BBoolError::CollectionCapacityReached);
         }
-        self.names.insert(name.to_string(), self._next_assign);
-        self.bools.set_at_pos(self._next_assign, value)?;
-        self._next_assign += 1;
+        self.names.insert(name.to_string(), self.next_assign);
+        self.bools.set_at_pos(self.next_assign, value)?;
+        self.next_assign += 1;
         Ok(())
     }
 

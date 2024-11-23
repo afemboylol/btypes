@@ -70,7 +70,7 @@ pub trait BitwiseOpsClone:
 /// basic arithmetic operations.
 pub trait Nums: One + Zero {}
 
-/// A simple trait that, if implemented on any type, allows for it to be used entirely with BetterBool and BetterBoolNamed.
+/// A simple trait that, if implemented on any type, allows for it to be used entirely with `BetterBool` and `BetterBoolNamed.`
 pub trait BoolSupport: BitwiseOpsClone + BitwiseOpsCopy {}
 
 impl BitwiseOpsCopy for u128 {}
