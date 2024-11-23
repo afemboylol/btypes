@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod tests {
+mod bool_tests {
     use crate::bbool::B128;
     use crate::named_bools::BN128;
 
@@ -155,4 +155,140 @@ mod tests {
 
         assert_eq!(bool.reader_head_pos, 128);
     }
+}
+
+/// Example usage and tests for BetterString
+#[cfg(test)]
+mod string_tests {
+    use crate::bstring::BetterString;
+    use std::str::FromStr;
+
+    #[test]
+    fn test_basic_operations() {
+        let str1 = BetterString::new("Hello");
+        assert_eq!(str1.len(), 5);
+        assert!(!str1.is_empty());
+        assert_eq!(str1.to_uppercase(), "HELLO");
+        assert_eq!(str1.to_lowercase(), "hello");
+    }
+
+    #[test]
+    fn test_string_validation() {
+        let email = BetterString::new("test@example.com");
+        let url = BetterString::new("https://www.example.com");
+        let ipv4 = BetterString::new("192.168.1.1");
+
+        assert!(email.is_valid_email());
+        assert!(url.is_valid_url());
+        assert!(ipv4.is_valid_ipv4());
+    }
+
+    #[test]
+    fn test_pattern_matching() {
+        let text = BetterString::new("Hello, World! Hello");
+        assert!(text.matches_pattern(r"^Hello"));
+        
+        let matches = text.find_all("Hello");
+        assert_eq!(matches.len(), 2);
+        
+        let replaced = text.replace_all("Hello", "Hi");
+        assert_eq!(replaced.to_string(), "Hi, World! Hi");
+    }
+
+    #[test]
+    fn test_encoding() {
+        let original = BetterString::new("Test String");
+        let encoded = original.to_base64();
+        let decoded = BetterString::from_base64(&encoded).unwrap();
+        assert_eq!(original, decoded);
+
+        let url_text = BetterString::new("Hello World!");
+        let url_encoded = url_text.to_url_encoded();
+        let url_decoded = BetterString::from_url_encoded(&url_encoded).unwrap();
+        assert_eq!(url_text, url_decoded);
+    }
+
+    #[test]
+    fn test_arithmetic_operations() {
+        let str1 = BetterString::new("Hello");
+        let str2 = BetterString::new(" World");
+        
+        // Addition
+        let combined = str1.clone() + str2.clone();
+        assert_eq!(combined.to_string(), "Hello World");
+        
+        // Multiplication
+        let repeated = str1.clone() * 3;
+        assert_eq!(repeated.to_string(), "HelloHelloHello");
+        
+        // Subtraction
+        let str3 = BetterString::new("Hello World");
+        let str4 = BetterString::new("World");
+        let subtracted = str3 - str4;
+        assert_eq!(subtracted.to_string(), "Hello ");
+    }
+
+    #[test]
+    fn test_utility_methods() {
+        let text = BetterString::new("  Hello World  ");
+        assert_eq!(text.trim(), "Hello World");
+        
+        let words: Vec<String> = text.split(" ").into_iter()
+            .filter(|s| !s.is_empty())
+            .collect();
+        assert_eq!(words, vec!["Hello", "World"]);
+        
+        let palindrome = BetterString::new("A man a plan a canal Panama");
+        assert!(palindrome.is_palindrome());
+    }
+
+    #[test]
+    fn test_string_properties() {
+        let numeric = BetterString::new("12345");
+        let alpha = BetterString::new("abcde");
+        let alphanum = BetterString::new("abc123");
+        let whitespace = BetterString::new("   ");
+
+        assert!(numeric.is_numeric());
+        assert!(alpha.is_alphabetic());
+        assert!(alphanum.is_alphanumeric());
+        assert!(whitespace.is_whitespace());
+    }
+
+    #[test]
+    fn test_error_handling() {
+        let empty = BetterString::new("");
+        assert!(empty.safe_split(",").is_err());
+        
+        let invalid_substring = BetterString::new("test");
+        assert!(invalid_substring.substring(5, 10).is_err());
+    }
+
+    #[test]
+    fn test_conversion_traits() {
+        // From String
+        let string = String::from("test");
+        let bstring: BetterString = string.clone().into();
+        assert_eq!(bstring.to_string(), string);
+
+        // From &str
+        let bstring_from_str: BetterString = "test".into();
+        assert_eq!(bstring_from_str.to_string(), "test");
+
+        // FromStr
+        let parsed = BetterString::from_str("test").unwrap();
+        assert_eq!(parsed.to_string(), "test");
+    }
+
+    #[test]
+    fn test_iterator_support() {
+        let bstring = BetterString::new("abc");
+        // Test owned iteration
+        let bytes: Vec<u8> = bstring.clone().into_iter().collect();
+        assert_eq!(bytes, vec![b'a', b'b', b'c']);
+    
+        // Test reference iteration - corrected version
+        let byte_refs: Vec<&u8> = (&bstring).into_iter().collect();
+        assert_eq!(byte_refs, vec![&b'a', &b'b', &b'c']);
+    }    
 }

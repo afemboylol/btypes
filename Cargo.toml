@@ -11,19 +11,29 @@ name = "btypes"
 path = "src/lib.rs"
 
 [[example]]
-name = "main_ex"
-path = "examples/main_ex.rs"
+name = "b"
+path = "examples/bool_ex.rs"
 
 [[example]]
-name = "lc_ex"
-path = "examples/low_cap_ex.rs"
+name = "lcb"
+path = "examples/low_cap_bool_ex.rs"
+
+[[example]]
+name = "s"
+path = "examples/string_ex.rs"
 
 [features]
 default = []
 named_bools = ["bools"]
 bools = []
-all = ["named_bools", "bools"]
+strings = []
+all = ["named_bools", "bools", "strings"]
 
 [dependencies]
 anyhow = "1.0.93"
+base64 = "0.22.1"
 num-traits = "0.2.19"
+regex = "1.11.1"
+serde = { version = "1.0.215", features = ["derive"] }
+url = "2.5.4"
+urlencoding = "2.1.3"

@@ -12,3 +12,6 @@ Cargo.lock
 
 # MSVC Windows builds of rustc generate these, which store debugging information
 *.pdb
+
+# Backup files made before major changes so I don't kill my fingers with ^z
+*.bkp
