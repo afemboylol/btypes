@@ -1,4 +1,4 @@
-use btypes::named_bools::{BN64, BN32, BN16, BN8};
+use btypes::named_bools::{BN16, BN32, BN64, BN8};
 
 fn main() -> anyhow::Result<()> {
     // BN64 Example
@@ -6,7 +6,7 @@ fn main() -> anyhow::Result<()> {
     let mut bools64 = BN64::from_num(0b10101010);
     println!("Initial binary state: {:b}", bools64.get_raw());
     println!("Initial mapped state: {:#?}", bools64.all()?);
-    
+
     // Fill up to capacity (64 bits)
     for i in 0..64 {
         bools64.set(&format!("flag_{}", i), i % 2 == 0)?;
@@ -18,7 +18,7 @@ fn main() -> anyhow::Result<()> {
     let mut bools32 = BN32::from_num(0b10101010);
     println!("Initial binary state: {:b}", bools32.get_raw());
     println!("Initial mapped state: {:#?}", bools32.all()?);
-    
+
     // Fill up to capacity (32 bits)
     for i in 0..32 {
         bools32.set(&format!("flag_{}", i), i % 2 == 0)?;
@@ -30,7 +30,7 @@ fn main() -> anyhow::Result<()> {
     let mut bools16 = BN16::from_num(0b1010);
     println!("Initial binary state: {:b}", bools16.get_raw());
     println!("Initial mapped state: {:#?}", bools16.all()?);
-    
+
     // Fill up to capacity (16 bits)
     for i in 0..16 {
         bools16.set(&format!("flag_{}", i), i % 2 == 0)?;
@@ -52,7 +52,7 @@ fn main() -> anyhow::Result<()> {
     // Error handling example (trying to exceed capacity)
     println!("\n=== Error Handling Examples ===");
     let mut capacity_test8 = BN8::new();
-    
+
     // Fill BN8 to capacity
     for i in 0..8 {
         capacity_test8.set(&format!("f{}", i), true)?;

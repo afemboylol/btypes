@@ -1,18 +1,31 @@
+use crate::error::BBoolError;
+use crate::traits::{BitwiseOpsClone, BitwiseOpsCopy, Nums};
 use anyhow::Result;
 use std::marker::PhantomData;
-use crate::traits::{BitwiseOpsClone, BitwiseOpsCopy, Nums};
-use crate::error::BBoolError;
 
+/// Type alias for a 128-bit BetterBool
 pub type B128 = BetterBool<u128>;
+/// Type alias for a 64-bit BetterBool
 pub type B64 = BetterBool<u64>;
+/// Type alias for a 32-bit BetterBool
 pub type B32 = BetterBool<u32>;
+/// Type alias for a 16-bit BetterBool
 pub type B16 = BetterBool<u16>;
+/// Type alias for an 8-bit BetterBool
 pub type B8 = BetterBool<u8>;
+/// Generic type alias for BetterBool with any numeric type T
 pub type BBool<T> = BetterBool<T>;
 
+/// A fixed-size boolean collection stored efficiently in numeric types
+///
+/// This struct provides bit-level boolean storage and operations using
+/// various integer types as the underlying storage mechanism.
 pub struct BetterBool<T: Nums> {
+    /// The numeric value storing the boolean bits
     pub(crate) store: T,
+    /// Current position of the reader head (0 to capacity-1)
     pub(crate) reader_head_pos: u8,
+    /// Phantom data for type parameter T
     pub(crate) _marker: PhantomData<T>,
 }
 
@@ -30,7 +43,7 @@ impl<T: Nums> BetterBool<T> {
     pub const CAP: u8 = (size_of::<T>() * 8) as u8;
 }
 
-impl<T: Nums + BitwiseOpsCopy> BetterBool<T> {
+impl<T: BitwiseOpsCopy> BetterBool<T> {
     /// Creates a new empty BetterBool instance initialized with zeros.
     ///
     /// # Examples
@@ -129,10 +142,10 @@ impl<T: Nums + BitwiseOpsCopy> BetterBool<T> {
     /// # Errors
     /// Returns an error if head position is invalid
     pub fn get(&self) -> Result<bool, BBoolError> {
-            if self.reader_head_pos < Self::CAP {
-                let mask = T::one() << self.reader_head_pos.into();
-                return Ok((self.store & mask) != T::zero());
-            }
+        if self.reader_head_pos < Self::CAP {
+            let mask = T::one() << self.reader_head_pos.into();
+            return Ok((self.store & mask) != T::zero());
+        }
         Err(BBoolError::InvalidHeadPos(self.reader_head_pos))
     }
 
@@ -156,10 +169,10 @@ impl<T: Nums + BitwiseOpsCopy> BetterBool<T> {
     /// Returns an error if position is invalid
     pub fn get_at_pos(&self, pos: u8) -> Result<bool, BBoolError> {
         if pos < Self::CAP {
-                let mask = T::one() << pos;
-                return Ok((self.store & mask) != T::zero());
-            }
-    
+            let mask = T::one() << pos;
+            return Ok((self.store & mask) != T::zero());
+        }
+
         Err(BBoolError::InvalidPos(pos))
     }
 
@@ -227,15 +240,15 @@ impl<T: Nums + BitwiseOpsCopy> BetterBool<T> {
     /// # Errors
     /// Returns an error if head position is invalid
     pub fn set(&mut self, new: bool) -> Result<(), BBoolError> {
-            if self.reader_head_pos < Self::CAP {
-                let mask = T::one() << self.reader_head_pos.into();
-                if new {
-                    self.store |= mask; // Set the bit using OR
-                } else {
-                    self.store &= !mask; // Clear the bit using AND with NOT
-                }
-                return Ok(());
+        if self.reader_head_pos < Self::CAP {
+            let mask = T::one() << self.reader_head_pos.into();
+            if new {
+                self.store |= mask; // Set the bit using OR
+            } else {
+                self.store &= !mask; // Clear the bit using AND with NOT
             }
+            return Ok(());
+        }
         Err(BBoolError::InvalidHeadPos(self.reader_head_pos))
     }
 
@@ -259,15 +272,15 @@ impl<T: Nums + BitwiseOpsCopy> BetterBool<T> {
     /// # Errors
     /// Returns an error if position is invalid
     pub fn set_at_pos(&mut self, pos: u8, new: bool) -> Result<(), BBoolError> {
-            if pos < Self::CAP {
-                let mask = T::one() << pos;
-                if new {
-                    self.store |= mask; // Set the bit using OR
-                } else {
-                    self.store &= !mask; // Clear the bit using AND with NOT
-                }
-                return Ok(());
+        if pos < Self::CAP {
+            let mask = T::one() << pos;
+            if new {
+                self.store |= mask; // Set the bit using OR
+            } else {
+                self.store &= !mask; // Clear the bit using AND with NOT
             }
+            return Ok(());
+        }
         Err(BBoolError::InvalidPos(pos))
     }
 
@@ -368,10 +381,10 @@ impl<T: Nums + BitwiseOpsCopy> BetterBool<T> {
     /// # Errors
     /// Returns an error if the new head position would be invalid
     pub fn inc(&mut self) -> Result<(), BBoolError> {
-            if self.reader_head_pos + 1 < Self::CAP {
-                self.reader_head_pos += 1;
-                return Ok(());
-            }
+        if self.reader_head_pos + 1 < Self::CAP {
+            self.reader_head_pos += 1;
+            return Ok(());
+        }
         Err(BBoolError::InvalidHeadPos(self.reader_head_pos))
     }
 
@@ -413,9 +426,9 @@ impl<T: Nums + BitwiseOpsCopy> BetterBool<T> {
     /// # Errors
     /// Returns an error if the new head position is invalid
     pub fn shp(&mut self, new: u8) -> Result<(), BBoolError> {
-            if new < Self::CAP {
-                self.reader_head_pos = new;
-                return Ok(());
+        if new < Self::CAP {
+            self.reader_head_pos = new;
+            return Ok(());
         }
         Err(BBoolError::InvalidHeadPos(new))
     }
@@ -446,13 +459,12 @@ impl<T: Nums + BitwiseOpsCopy> BetterBool<T> {
     pub fn ghp_mut(&mut self) -> &mut u8 {
         return &mut self.reader_head_pos;
     }
-    pub fn clear(&mut self)
-    {
+    pub fn clear(&mut self) {
         self.store = T::zero();
     }
 }
 
-impl<T: BitwiseOpsClone + Nums> BetterBool<T> {
+impl<T: BitwiseOpsClone> BetterBool<T> {
     /// Gets the bool at the current head position (clones self.store).
     ///
     /// # Examples
@@ -469,10 +481,10 @@ impl<T: BitwiseOpsClone + Nums> BetterBool<T> {
     /// # Errors
     /// Returns an error if head position is invalid
     pub fn get_cl(&self) -> Result<bool, BBoolError> {
-            if self.reader_head_pos < Self::CAP {
-                let mask = T::one() << self.reader_head_pos.into();
-                return Ok((self.store.clone() & mask) != T::zero());
-            }
+        if self.reader_head_pos < Self::CAP {
+            let mask = T::one() << self.reader_head_pos.into();
+            return Ok((self.store.clone() & mask) != T::zero());
+        }
         Err(BBoolError::InvalidHeadPos(self.reader_head_pos))
     }
 
@@ -504,10 +516,10 @@ impl<T: BitwiseOpsClone + Nums> BetterBool<T> {
     /// # Errors
     /// Returns an error if position is invalid
     pub fn get_cl_at_pos(&self, pos: u8) -> Result<bool, BBoolError> {
-            if pos < Self::CAP {
-                let mask = T::one() << pos;
-                return Ok((self.store.clone() & mask) != T::zero());
-            }
+        if pos < Self::CAP {
+            let mask = T::one() << pos;
+            return Ok((self.store.clone() & mask) != T::zero());
+        }
         Err(BBoolError::InvalidPos(pos))
     }
 

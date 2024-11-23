@@ -1,6 +1,6 @@
 [package]
 name = "btypes"
-version = "0.3.4"
+version = "0.3.6"
 edition = "2021"
 authors = ["A User"]
 description = "Better types (BTypes) for when you dislike normal types, I guess."
@@ -35,6 +35,9 @@ strings = []
 inf_bools = []
 inf_named_bools = ["inf_bools"]
 all = ["named_bools", "bools", "strings", "inf_bools", "inf_named_bools"]
+
+[package.metadata.docs.rs]
+all-features = true
 
 [dependencies]
 anyhow = "1.0.93"

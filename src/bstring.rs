@@ -1,15 +1,15 @@
 //! BetterString - A more feature-rich string type for Rust
-//! 
+//!
 //! This module provides an enhanced string type with additional operations
 //! and utility methods not found in the standard String type.
 
-use std::fmt::{Display, Error};
-use std::ops::{Add, AddAssign, Div, DivAssign, Index, Mul, MulAssign, Sub, SubAssign};
-use std::str::FromStr;
+use crate::error::BStringError;
 use base64::engine::general_purpose;
 use base64::Engine;
 use serde::{Deserialize, Serialize};
-use crate::error::BStringError;
+use std::fmt::{Display, Error};
+use std::ops::{Add, AddAssign, Div, DivAssign, Index, Mul, MulAssign, Sub, SubAssign};
+use std::str::FromStr;
 
 /// A more convenient alias for BetterString
 pub type BStr = BetterString;
@@ -55,9 +55,7 @@ impl BetterString {
     /// Validates if the string is a valid IPv4 address
     pub fn is_valid_ipv4(&self) -> bool {
         if let Ok(s) = std::str::from_utf8(&self.bytes) {
-            s.split('.')
-                .filter_map(|s| s.parse::<u8>().ok())
-                .count() == 4
+            s.split('.').filter_map(|s| s.parse::<u8>().ok()).count() == 4
         } else {
             false
         }
@@ -73,7 +71,8 @@ impl BetterString {
 
     /// Attempts to decode a base64 string
     pub fn from_base64(encoded: &str) -> Result<Self, BStringError> {
-        general_purpose::STANDARD.decode(encoded)
+        general_purpose::STANDARD
+            .decode(encoded)
             .map_err(|e| BStringError::EncodingError(e.to_string()))
             .map(|bytes| Self { bytes })
     }
@@ -100,7 +99,8 @@ impl BetterString {
     /// Finds all matches of a pattern in the string
     pub fn find_all(&self, pattern: &str) -> Vec<(usize, String)> {
         if let Ok(s) = std::str::from_utf8(&self.bytes) {
-            let re = regex::Regex::new(pattern).unwrap_or_else(|_| regex::Regex::new(&regex::escape(pattern)).unwrap());
+            let re = regex::Regex::new(pattern)
+                .unwrap_or_else(|_| regex::Regex::new(&regex::escape(pattern)).unwrap());
             re.find_iter(s)
                 .map(|m| (m.start(), m.as_str().to_string()))
                 .collect()
@@ -112,7 +112,8 @@ impl BetterString {
     /// Replaces all matches of a pattern with a replacement string
     pub fn replace_all(&self, pattern: &str, replacement: &str) -> Self {
         if let Ok(s) = std::str::from_utf8(&self.bytes) {
-            let re = regex::Regex::new(pattern).unwrap_or_else(|_| regex::Regex::new(&regex::escape(pattern)).unwrap());
+            let re = regex::Regex::new(pattern)
+                .unwrap_or_else(|_| regex::Regex::new(&regex::escape(pattern)).unwrap());
             Self::new(re.replace_all(s, replacement))
         } else {
             self.clone()
@@ -138,14 +139,17 @@ impl BetterString {
                 .map_err(|e| BStringError::InvalidOperation(e.to_string()))
                 .map(|re| re.find_iter(s).count())
         } else {
-            Err(BStringError::InvalidUtf8("Invalid UTF-8 sequence".to_string()))
+            Err(BStringError::InvalidUtf8(
+                "Invalid UTF-8 sequence".to_string(),
+            ))
         }
     }
 
     /// Checks if the string is a palindrome
     pub fn is_palindrome(&self) -> bool {
         if let Ok(s) = std::str::from_utf8(&self.bytes) {
-            let cleaned = s.chars()
+            let cleaned = s
+                .chars()
                 .filter(|c| c.is_alphanumeric())
                 .collect::<String>()
                 .to_lowercase();
@@ -158,7 +162,7 @@ impl BetterString {
 
 impl BetterString {
     /// Creates a new BetterString from any type that can be converted to a string
-    /// 
+    ///
     /// # Examples
     /// ```
     /// use btypes::bstring::BetterString;
@@ -202,14 +206,12 @@ impl BetterString {
     }
 
     /// Splits the string by the given delimiter
-    /// 
+    ///
     /// # Arguments
     /// * `delimiter` - The string to split on
     pub fn split(&self, delimiter: &str) -> Vec<String> {
         if let Ok(s) = std::str::from_utf8(&self.bytes) {
-            s.split(delimiter)
-                .map(String::from)
-                .collect()
+            s.split(delimiter).map(String::from).collect()
         } else {
             Vec::new()
         }
@@ -286,19 +288,19 @@ impl BetterString {
     }
 
     /// Performs basic email validation
-    /// 
+    ///
     /// Note: This is a basic implementation and should not be used for
     /// production email validation
     pub fn is_valid_email(&self) -> bool {
         if let Ok(s) = std::str::from_utf8(&self.bytes) {
             let parts: Vec<&str> = s.split('@').collect();
-            
+
             if parts.len() != 2 {
                 return false;
             }
 
             let (local, domain) = (parts[0], parts[1]);
-            
+
             if local.is_empty() || domain.is_empty() || !domain.contains('.') {
                 return false;
             }
@@ -310,7 +312,7 @@ impl BetterString {
     }
 
     /// Returns a substring between the given indices
-    /// 
+    ///
     /// # Arguments
     /// * `start` - The starting index (inclusive)
     /// * `end` - The ending index (exclusive)
@@ -349,7 +351,10 @@ impl Add for BetterString {
 /// Remove a substring
 impl SubAssign for BetterString {
     fn sub_assign(&mut self, other: Self) {
-        if let (Ok(s1), Ok(s2)) = (std::str::from_utf8(&self.bytes), std::str::from_utf8(&other.bytes)) {
+        if let (Ok(s1), Ok(s2)) = (
+            std::str::from_utf8(&self.bytes),
+            std::str::from_utf8(&other.bytes),
+        ) {
             self.bytes = s1.replace(s2, "").into_bytes();
         }
     }
@@ -370,11 +375,7 @@ impl DivAssign<&str> for BetterString {
     fn div_assign(&mut self, rhs: &str) {
         if let Ok(s) = std::str::from_utf8(&self.bytes) {
             if let Some(first_pos) = s.find(rhs) {
-                let new_s = format!(
-                    "{}{}",
-                    &s[..first_pos],
-                    &s[first_pos + rhs.len()..]
-                );
+                let new_s = format!("{}{}", &s[..first_pos], &s[first_pos + rhs.len()..]);
                 self.bytes = new_s.into_bytes();
             }
         }
@@ -393,7 +394,10 @@ impl Sub for BetterString {
     type Output = Self;
 
     fn sub(self, other: Self) -> Self {
-        if let (Ok(s1), Ok(s2)) = (std::str::from_utf8(&self.bytes), std::str::from_utf8(&other.bytes)) {
+        if let (Ok(s1), Ok(s2)) = (
+            std::str::from_utf8(&self.bytes),
+            std::str::from_utf8(&other.bytes),
+        ) {
             Self::new(s1.replace(s2, ""))
         } else {
             self
@@ -497,7 +501,7 @@ impl BetterString {
                 "Delimiter cannot be empty".to_string(),
             ));
         }
-        
+
         match std::str::from_utf8(&self.bytes) {
             Ok(s) => Ok(s.split(delimiter).map(String::from).collect()),
             Err(e) => Err(BStringError::InvalidUtf8(e.to_string())),
@@ -525,13 +529,17 @@ impl Display for BetterString {
 // Add conversion traits
 impl From<String> for BetterString {
     fn from(s: String) -> Self {
-        Self { bytes: s.into_bytes() }
+        Self {
+            bytes: s.into_bytes(),
+        }
     }
 }
 
 impl From<&str> for BetterString {
     fn from(s: &str) -> Self {
-        Self { bytes: s.as_bytes().to_vec() }
+        Self {
+            bytes: s.as_bytes().to_vec(),
+        }
     }
 }
 
@@ -539,6 +547,8 @@ impl FromStr for BetterString {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self { bytes: s.as_bytes().to_vec() })
+        Ok(Self {
+            bytes: s.as_bytes().to_vec(),
+        })
     }
 }

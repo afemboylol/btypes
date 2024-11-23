@@ -1,7 +1,21 @@
 use num_traits::{One, Zero};
 use std::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, Not, Shl, Shr};
 
-/// A trait that ensures the type supports basic bitwise operations and copying.
+/// A trait that provides a complete set of bitwise operations for types that implement Copy.
+///
+/// This trait combines several fundamental bitwise operations:
+/// - Bitwise AND (&), OR (|), XOR (^)
+/// - Left shift (<<) and right shift (>>)
+/// - Bitwise AND assignment (&=) and OR assignment (|=)
+/// - Bitwise NOT (!)
+///
+/// Additionally, it requires:
+/// - `Copy` semantics for efficient value duplication
+/// - Conversion from `u8`
+/// - Constants for 0 and 1 via `Zero` and `One` traits from `Nums` trait
+/// - Partial equality comparison
+///
+/// Commonly implemented for fixed-size unsigned and signed integer types.
 pub trait BitwiseOpsCopy:
     BitAnd<Output = Self>
     + BitOr<Output = Self>
@@ -12,14 +26,25 @@ pub trait BitwiseOpsCopy:
     + BitOrAssign
     + Not<Output = Self>
     + Sized
-    + One
-    + Zero
+    + Nums
     + From<u8>
     + std::cmp::PartialEq
     + Copy
 {
 }
-/// A trait that ensures the type supports basic bitwise operations and cloning.
+
+/// A trait that provides a complete set of bitwise operations for types that implement Clone.
+///
+/// Similar to `BitwiseOpsCopy` but for types that require explicit cloning.
+/// Useful for types where copying is more expensive or semantically inappropriate.
+///
+/// Includes all bitwise operations:
+/// - Bitwise AND (&), OR (|), XOR (^)
+/// - Left shift (<<) and right shift (>>)
+/// - Bitwise AND assignment (&=) and OR assignment (|=)
+/// - Bitwise NOT (!)
+///
+/// The only difference from `BitwiseOpsCopy` is the `Clone` bound instead of `Copy`.
 pub trait BitwiseOpsClone:
     BitAnd<Output = Self>
     + BitOr<Output = Self>
@@ -30,12 +55,19 @@ pub trait BitwiseOpsClone:
     + BitOrAssign
     + Not<Output = Self>
     + Sized
+    + Nums
     + From<u8>
     + std::cmp::PartialEq
     + Clone
 {
 }
-/// A trait that ensures the type supports ::zero() and ::one() functions.
+
+/// A trait for types that can represent both zero and one.
+///
+/// This trait combines the `Zero` and `One` traits from `num_traits`,
+/// providing a convenient way to require both capabilities in a single bound.
+/// Useful for numeric types that need to represent binary states or perform
+/// basic arithmetic operations.
 pub trait Nums: One + Zero {}
 
 impl BitwiseOpsCopy for u128 {}

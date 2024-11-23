@@ -4,11 +4,19 @@ use anyhow::Error;
 use anyhow::Result;
 use std::{collections::HashMap, marker::PhantomData};
 
+/// Type alias for the infinite-capacity named boolean collection
 pub type BNInf = BetterBoolNamedInf;
 
+/// A dynamically-sized collection of named boolean values
+///
+/// This struct combines the unlimited capacity of BetterBoolInf with
+/// the ability to access boolean values by name rather than position.
 pub struct BetterBoolNamedInf {
+    /// The underlying boolean storage
     pub bools: BetterBoolInf,
+    /// Mapping of names to boolean positions
     names: HashMap<String, u128>,
+    /// Next available position for new boolean values
     _next_assign: u128,
 }
 
@@ -482,7 +490,7 @@ impl BetterBoolNamedInf {
     /// Ok(())
     /// }
     /// ```
-    /// 
+    ///
     /// # Errors
     /// Returns an error if the name doesn't exist
     pub fn get(&mut self, name: &str) -> Result<bool, BBoolError> {
@@ -508,7 +516,7 @@ impl BetterBoolNamedInf {
     /// Ok(())
     /// }
     /// ```
-    /// 
+    ///
     /// # Errors
     /// Returns an error if setting the value to false fails
     pub fn delete(&mut self, name: &str) -> Result<()> {
@@ -527,7 +535,7 @@ impl BetterBoolNamedInf {
     /// let mut bools = BNInf::new();
     /// bools.clear();
     /// ```
-    /// 
+    ///
     pub fn clear(&mut self) {
         self.names.clear();
         self.bools.clear();

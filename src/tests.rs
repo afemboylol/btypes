@@ -187,10 +187,10 @@ mod string_tests {
     fn test_pattern_matching() {
         let text = BetterString::new("Hello, World! Hello");
         assert!(text.matches_pattern(r"^Hello"));
-        
+
         let matches = text.find_all("Hello");
         assert_eq!(matches.len(), 2);
-        
+
         let replaced = text.replace_all("Hello", "Hi");
         assert_eq!(replaced.to_string(), "Hi, World! Hi");
     }
@@ -212,15 +212,15 @@ mod string_tests {
     fn test_arithmetic_operations() {
         let str1 = BetterString::new("Hello");
         let str2 = BetterString::new(" World");
-        
+
         // Addition
         let combined = str1.clone() + str2.clone();
         assert_eq!(combined.to_string(), "Hello World");
-        
+
         // Multiplication
         let repeated = str1.clone() * 3;
         assert_eq!(repeated.to_string(), "HelloHelloHello");
-        
+
         // Subtraction
         let str3 = BetterString::new("Hello World");
         let str4 = BetterString::new("World");
@@ -232,12 +232,14 @@ mod string_tests {
     fn test_utility_methods() {
         let text = BetterString::new("  Hello World  ");
         assert_eq!(text.trim(), "Hello World");
-        
-        let words: Vec<String> = text.split(" ").into_iter()
+
+        let words: Vec<String> = text
+            .split(" ")
+            .into_iter()
             .filter(|s| !s.is_empty())
             .collect();
         assert_eq!(words, vec!["Hello", "World"]);
-        
+
         let palindrome = BetterString::new("A man a plan a canal Panama");
         assert!(palindrome.is_palindrome());
     }
@@ -259,7 +261,7 @@ mod string_tests {
     fn test_error_handling() {
         let empty = BetterString::new("");
         assert!(empty.safe_split(",").is_err());
-        
+
         let invalid_substring = BetterString::new("test");
         assert!(invalid_substring.substring(5, 10).is_err());
     }
@@ -286,18 +288,18 @@ mod string_tests {
         // Test owned iteration
         let bytes: Vec<u8> = bstring.clone().into_iter().collect();
         assert_eq!(bytes, vec![b'a', b'b', b'c']);
-    
+
         // Test reference iteration - corrected version
         let byte_refs: Vec<&u8> = (&bstring).into_iter().collect();
         assert_eq!(byte_refs, vec![&b'a', &b'b', &b'c']);
-    }    
+    }
 }
 
 #[cfg(test)]
 mod inf_named_bools_tests {
+    use crate::error::BBoolError;
     use crate::inf_named_bools::BNInf;
     use anyhow::Result;
-    use crate::error::BBoolError;
 
     #[test]
     fn test_new_and_default() {
@@ -317,88 +319,88 @@ mod inf_named_bools_tests {
     #[test]
     fn test_get_set_operations() -> Result<(), BBoolError> {
         let mut bool = BNInf::new();
-        
+
         // Test setting and getting named values
         bool.set("test1", true)?;
         assert!(bool.get("test1")?);
-        
+
         bool.set("test2", false)?;
         assert!(!bool.get("test2")?);
-        
+
         // Test updating existing value
         bool.set("test1", false)?;
         assert!(!bool.get("test1")?);
-        
+
         Ok(())
     }
 
     #[test]
     fn test_mass_operations() -> Result<()> {
         let mut bool = BNInf::new();
-        
+
         // Test mass_set
         bool.mass_set(3, "test_{n}", "true,false{r}")?;
         assert!(bool.get("test_0")?);
         assert!(!bool.get("test_1")?);
         assert!(bool.get("test_2")?);
-        
+
         // Test mass_get
         let values = bool.mass_get(&["test_0", "test_1", "test_2"])?;
         assert_eq!(values, vec![true, false, true]);
-        
+
         // Test mass_toggle
         bool.mass_toggle(&["test_0", "test_1"])?;
         assert!(!bool.get("test_0")?);
         assert!(bool.get("test_1")?);
-        
+
         Ok(())
     }
 
     #[test]
     fn test_all_and_sorted() -> Result<()> {
         let mut bool = BNInf::new();
-        
+
         // Set up test data
         bool.set("c", true)?;
         bool.set("a", false)?;
         bool.set("b", true)?;
-        
+
         // Test all()
         let all_pairs = bool.all()?;
         assert_eq!(all_pairs.len(), 3);
         assert!(!all_pairs["a"]);
         assert!(all_pairs["b"]);
         assert!(all_pairs["c"]);
-        
+
         // Test sorted()
         let mut sorted = bool.sorted()?;
         let sorted_pairs = sorted.all()?;
         let mut keys: Vec<_> = sorted_pairs.keys().collect();
         keys.sort();
         assert_eq!(keys, vec!["a", "b", "c"]);
-        
+
         Ok(())
     }
 
     #[test]
     fn test_exists_and_delete() -> Result<()> {
         let mut bool = BNInf::new();
-        
+
         bool.set("test", true)?;
         assert!(bool.exists("test"));
-        
+
         bool.delete("test")?;
         assert!(!bool.exists("test"));
-        
+
         Ok(())
     }
 
     #[test]
     fn test_raw_access() {
         let mut bool = BNInf::from_vec(vec![5]); // Binary: 00000101
-        
+
         assert_eq!(bool.get_raw(), &vec![5]);
-        
+
         let raw_mut = bool.get_raw_mut();
         raw_mut[0] = 3; // Binary: 00000011
         assert_eq!(bool.get_raw(), &vec![3]);
@@ -409,25 +411,25 @@ mod inf_named_bools_tests {
         let mut bool = BNInf::new();
         bool.set("test1", true)?;
         bool.set("test2", true)?;
-        
+
         bool.clear();
         assert!(bool.all_names().is_empty());
         assert!(bool.bools.store.is_empty());
-        
+
         Ok(())
     }
 
     #[test]
     fn test_error_conditions() -> Result<()> {
         let mut bool = BNInf::new();
-        
+
         // Test getting non-existent name
         assert!(bool.get("nonexistent").is_err());
-        
+
         // Test invalid pattern in mass_set
         assert!(bool.mass_set(3, "test", "true,false{r}").is_err()); // Missing {n}
         assert!(bool.mass_set(3, "test_{n}", "true").is_err()); // Insufficient values
-        
+
         Ok(())
     }
 }

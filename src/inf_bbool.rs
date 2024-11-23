@@ -2,12 +2,19 @@ use crate::error::BBoolError;
 use anyhow::Result;
 use std::marker::PhantomData;
 
+/// Type alias for the infinite-capacity BetterBool implementation
 pub type BInf = BetterBoolInf;
 
-/// A structure that provides a pseudo-infinite boolean array implementation using a dynamically sized vector of bytes
+/// A dynamically-sized boolean collection backed by a vector
+///
+/// This struct provides storage and operations for boolean values with
+/// virtually unlimited capacity, growing as needed.
 pub struct BetterBoolInf {
+    /// The vector storing the boolean bits as bytes
     pub(crate) store: Vec<u8>,
+    /// Current position of the reader head
     pub(crate) reader_head_pos: u128,
+    /// Phantom data for the vector type
     pub(crate) _marker: PhantomData<Vec<u8>>,
 }
 

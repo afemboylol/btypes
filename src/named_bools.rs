@@ -1,23 +1,37 @@
 use crate::bbool::BetterBool;
 use crate::error::BBoolError;
 use crate::traits::{BitwiseOpsClone, BitwiseOpsCopy, Nums};
+use anyhow::Error;
 use anyhow::Result;
 use std::{collections::HashMap, marker::PhantomData};
-use anyhow::Error;
 
+/// Type alias for a 128-bit named BetterBool
 pub type BN128 = BetterBoolNamed<u128>;
+/// Type alias for a 64-bit named BetterBool
 pub type BN64 = BetterBoolNamed<u64>;
+/// Type alias for a 32-bit named BetterBool
 pub type BN32 = BetterBoolNamed<u32>;
+/// Type alias for a 16-bit named BetterBool
 pub type BN16 = BetterBoolNamed<u16>;
+/// Type alias for an 8-bit named BetterBool
 pub type BN8 = BetterBoolNamed<u8>;
+/// Generic type alias for named BetterBool with any numeric type T
 pub type BNBool<T> = BetterBoolNamed<T>;
 
+/// A fixed-size collection of named boolean values
+///
+/// This struct combines the fixed-size storage of BetterBool with the ability
+/// to access boolean values by name rather than position.
 pub struct BetterBoolNamed<T: Nums> {
+    /// The underlying boolean storage
     pub bools: BetterBool<T>,
+    /// Mapping of names to boolean positions
     names: HashMap<String, u8>,
+    /// Next available position for new boolean values
     _next_assign: u8,
 }
-impl<T: Nums + BitwiseOpsCopy> BetterBoolNamed<T> {
+
+impl<T: BitwiseOpsCopy> BetterBoolNamed<T> {
     /// Creates a new BetterBoolNamed instance with a specified initial value.
     ///
     /// # Arguments
@@ -90,16 +104,25 @@ impl<T: Nums + BitwiseOpsCopy> BetterBoolNamed<T> {
     /// * The value pattern doesn't contain {r} and the count of bools in it doesn't match or exceed the count.
     /// * The value pattern contains invalid boolean values
     /// * Adding the bools would exceed capacity
-    pub fn mass_set(&mut self, count: u8, pattern: &str, value_pattern: &str) -> Result<(), BBoolError> {
+    pub fn mass_set(
+        &mut self,
+        count: u8,
+        pattern: &str,
+        value_pattern: &str,
+    ) -> Result<(), BBoolError> {
         // Validate pattern contains {n}
         if !pattern.contains("{n}") {
-            return Err(BBoolError::InvalidPattern("Pattern must contain {n}".to_string()));
+            return Err(BBoolError::InvalidPattern(
+                "Pattern must contain {n}".to_string(),
+            ));
         }
 
         // Parse value pattern
         let value_parts: Vec<&str> = value_pattern.trim().split(',').collect();
         if value_parts.is_empty() {
-            return Err(BBoolError::InvalidPattern("Value pattern cannot be empty".to_string()));
+            return Err(BBoolError::InvalidPattern(
+                "Value pattern cannot be empty".to_string(),
+            ));
         }
         if !value_pattern.contains(&"{r}") && value_parts.len() < count.into() {
             println!("{}, {}", !value_parts.contains(&"{r}"), value_parts.len());
@@ -154,7 +177,7 @@ impl<T: Nums + BitwiseOpsCopy> BetterBoolNamed<T> {
     /// Ok(())
     /// }
     /// ```
-    /// 
+    ///
     /// # Errors
     /// Returns an error if:
     /// * Any of the names don't exist in the collection
@@ -183,7 +206,7 @@ impl<T: Nums + BitwiseOpsCopy> BetterBoolNamed<T> {
     /// Ok(())
     /// }
     /// ```
-    /// 
+    ///
     /// # Errors
     /// Returns an error if:
     /// * Any of the names don't exist in the collection
@@ -371,7 +394,7 @@ impl<T: Nums + BitwiseOpsCopy> BetterBoolNamed<T> {
     /// Ok(())
     /// }
     /// ```
-    /// 
+    ///
     /// # Errors
     /// Returns an error if:
     /// * The name doesn't exist in the collection
@@ -504,13 +527,12 @@ impl<T: Nums + BitwiseOpsCopy> BetterBoolNamed<T> {
         Ok(())
     }
     /// Clears all stored boolean values and associated names.
-    pub fn clear(&mut self)
-    {
+    pub fn clear(&mut self) {
         self.names.clear();
         self.bools.clear();
     }
 }
-impl<T: Nums + BitwiseOpsClone> BetterBoolNamed<T> {
+impl<T: BitwiseOpsClone> BetterBoolNamed<T> {
     /// Gets the boolean value associated with the given name, using cloning.
     ///
     /// # Arguments
