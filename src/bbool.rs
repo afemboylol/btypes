@@ -349,7 +349,7 @@ impl<T: BitwiseOpsCopy> BetterBool<T> {
     /// use anyhow::Result;
     /// fn main() -> Result<()> {
     /// let mut bools = B8::from_num(5);
-    /// let value = bools.next_bool_res()?;
+    /// let value = bools.next_b_res()?;
     /// Ok(())
     /// }
     /// ```
