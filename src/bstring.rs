@@ -1,5 +1,3 @@
-// TODO: doc comments, fix warnings according to cargo clippy --all-features -- -W missing_docs
-
 use crate::error::BStringError;
 use base64::engine::general_purpose;
 use base64::Engine;
@@ -12,9 +10,80 @@ use std::str::FromStr;
 pub type BStr = BetterString;
 
 /// An enhanced string type that provides additional functionality
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct BetterString {
     bytes: Vec<u8>,
+}
+
+impl Serialize for BetterString {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        // Serialize the bytes directly
+        serializer.serialize_bytes(&self.bytes)
+    }
+}
+
+impl<'de> Deserialize<'de> for BetterString {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        // We'll use a visitor to deserialize the bytes
+        struct BetterStringVisitor;
+
+        impl<'de> serde::de::Visitor<'de> for BetterStringVisitor {
+            type Value = BetterString;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+                formatter.write_str("a byte array or string")
+            }
+
+            // Handle byte array input
+            fn visit_bytes<E>(self, v: &[u8]) -> Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                Ok(BetterString {
+                    bytes: v.to_vec(),
+                })
+            }
+
+            // Handle string input
+            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                Ok(BetterString {
+                    bytes: v.as_bytes().to_vec(),
+                })
+            }
+
+            // Handle borrowed string input
+            fn visit_borrowed_str<E>(self, v: &'de str) -> Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                Ok(BetterString {
+                    bytes: v.as_bytes().to_vec(),
+                })
+            }
+
+            // Handle string input
+            fn visit_string<E>(self, v: String) -> Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                Ok(BetterString {
+                    bytes: v.into_bytes(),
+                })
+            }
+        }
+
+        // Use the appropriate deserializer based on the input format
+        deserializer.deserialize_bytes(BetterStringVisitor)
+    }
 }
 
 // Implement indexing operations
@@ -201,7 +270,7 @@ impl BetterString {
     pub fn from_url_encoded(encoded: &str) -> Result<Self, BStringError> {
         urlencoding::decode(encoded)
             .map_err(|e| BStringError::EncodingError(e.to_string()))
-            .map(|s| Self::new(&s))
+            .map(|s| Self::new(s.to_string()))
     }
 }
 
@@ -237,7 +306,7 @@ impl BetterString {
         if let Ok(s) = std::str::from_utf8(&self.bytes) {
             let re = regex::Regex::new(pattern)
                 .unwrap_or_else(|_| regex::Regex::new(&regex::escape(pattern)).unwrap());
-            Self::new(&re.replace_all(s, replacement))
+            Self::new(re.replace_all(s, replacement))
         } else {
             self.clone()
         }
@@ -251,7 +320,7 @@ impl BetterString {
     pub fn reverse(&self) -> Self {
         std::str::from_utf8(&self.bytes).map_or_else(
             |_| self.clone(),
-            |s| Self::new(&s.chars().rev().collect::<String>()),
+            |s| Self::new(s.chars().rev().collect::<String>()),
         )
     }
 
@@ -304,7 +373,8 @@ impl BetterString {
     /// use btypes::bstring::BetterString;
     /// let bstr = BetterString::new("Hello, world!");
     /// ```
-    pub fn new<T: ToString>(value: &T) -> Self {
+    #[allow(clippy::needless_pass_by_value)]
+    pub fn new<T: ToString>(value: T) -> Self {
         Self {
             bytes: value.to_string().into_bytes(),
         }
@@ -526,7 +596,7 @@ impl Sub for BetterString {
             std::str::from_utf8(&self.bytes),
             std::str::from_utf8(&other.bytes),
         ) {
-            Self::new(&s1.replace(s2, ""))
+            Self::new(s1.replace(s2, ""))
         } else {
             self
         }
@@ -538,7 +608,7 @@ impl Mul<usize> for BetterString {
     type Output = Self;
 
     fn mul(self, rhs: usize) -> Self {
-        std::str::from_utf8(&self.bytes.clone()).map_or(self, |s| Self::new(&s.repeat(rhs)))
+        std::str::from_utf8(&self.bytes.clone()).map_or(self, |s| Self::new(s.repeat(rhs)))
     }
 }
 

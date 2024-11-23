@@ -1,6 +1,6 @@
 [package]
 name = "btypes"
-version = "0.3.11"
+version = "0.3.12"
 edition = "2021"
 authors = ["A User"]
 description = "Better types (BTypes) for when you dislike normal types, I guess."
@@ -49,5 +49,5 @@ anyhow = "1.0.93"
 base64 = "0.22.1"
 num-traits = "0.2.19"
 regex = "1.11.1"
-serde = { version = "1.0.215", features = ["derive"] }
+serde = "1.0.215"
 urlencoding = "2.1.3"
