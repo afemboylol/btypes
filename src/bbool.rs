@@ -1,6 +1,7 @@
-use anyhow::{Error, Result};
+use anyhow::Result;
 use std::marker::PhantomData;
 use crate::traits::{BitwiseOpsClone, BitwiseOpsCopy, Nums};
+use crate::error::BBoolError;
 
 pub type B128 = BetterBool<u128>;
 pub type B64 = BetterBool<u64>;
@@ -127,12 +128,12 @@ impl<T: Nums + BitwiseOpsCopy> BetterBool<T> {
     ///
     /// # Errors
     /// Returns an error if head position is invalid
-    pub fn get(&self) -> Result<bool> {
+    pub fn get(&self) -> Result<bool, BBoolError> {
             if self.reader_head_pos < Self::CAP {
                 let mask = T::one() << self.reader_head_pos.into();
                 return Ok((self.store & mask) != T::zero());
             }
-        Err(Error::msg("Invalid head position"))
+        Err(BBoolError::InvalidHeadPos(self.reader_head_pos))
     }
 
     /// Gets the bool at the given position. (doesn't clone self.store)
@@ -153,13 +154,13 @@ impl<T: Nums + BitwiseOpsCopy> BetterBool<T> {
     ///
     /// # Errors
     /// Returns an error if position is invalid
-    pub fn get_at_pos(&self, pos: u8) -> Result<bool> {
-        if self.reader_head_pos < Self::CAP {
+    pub fn get_at_pos(&self, pos: u8) -> Result<bool, BBoolError> {
+        if pos < Self::CAP {
                 let mask = T::one() << pos;
                 return Ok((self.store & mask) != T::zero());
             }
     
-        Err(Error::msg("Invalid position"))
+        Err(BBoolError::InvalidPos(pos))
     }
 
     /// Gets the bool at the current head position without validity checks. (doesn't clone self.store)
@@ -225,7 +226,7 @@ impl<T: Nums + BitwiseOpsCopy> BetterBool<T> {
     ///
     /// # Errors
     /// Returns an error if head position is invalid
-    pub fn set(&mut self, new: bool) -> Result<()> {
+    pub fn set(&mut self, new: bool) -> Result<(), BBoolError> {
             if self.reader_head_pos < Self::CAP {
                 let mask = T::one() << self.reader_head_pos.into();
                 if new {
@@ -235,7 +236,7 @@ impl<T: Nums + BitwiseOpsCopy> BetterBool<T> {
                 }
                 return Ok(());
             }
-        Err(Error::msg("Invalid head position"))
+        Err(BBoolError::InvalidHeadPos(self.reader_head_pos))
     }
 
     /// Sets the bool at the given position.
@@ -257,7 +258,7 @@ impl<T: Nums + BitwiseOpsCopy> BetterBool<T> {
     ///
     /// # Errors
     /// Returns an error if position is invalid
-    pub fn set_at_pos(&mut self, pos: u8, new: bool) -> Result<()> {
+    pub fn set_at_pos(&mut self, pos: u8, new: bool) -> Result<(), BBoolError> {
             if pos < Self::CAP {
                 let mask = T::one() << pos;
                 if new {
@@ -267,7 +268,7 @@ impl<T: Nums + BitwiseOpsCopy> BetterBool<T> {
                 }
                 return Ok(());
             }
-        Err(Error::msg("Invalid head position"))
+        Err(BBoolError::InvalidPos(pos))
     }
 
     /// Sets the bool at the current head position without validity checks.
@@ -366,12 +367,12 @@ impl<T: Nums + BitwiseOpsCopy> BetterBool<T> {
     ///
     /// # Errors
     /// Returns an error if the new head position would be invalid
-    pub fn inc(&mut self) -> Result<()> {
+    pub fn inc(&mut self) -> Result<(), BBoolError> {
             if self.reader_head_pos + 1 < Self::CAP {
                 self.reader_head_pos += 1;
                 return Ok(());
             }
-        Err(Error::msg("Invalid head position"))
+        Err(BBoolError::InvalidHeadPos(self.reader_head_pos))
     }
 
     /// Increments the head position by 1 without validity checks.
@@ -411,12 +412,12 @@ impl<T: Nums + BitwiseOpsCopy> BetterBool<T> {
     ///
     /// # Errors
     /// Returns an error if the new head position is invalid
-    pub fn shp(&mut self, new: u8) -> Result<()> {
+    pub fn shp(&mut self, new: u8) -> Result<(), BBoolError> {
             if new < Self::CAP {
                 self.reader_head_pos = new;
                 return Ok(());
         }
-        Err(Error::msg("Invalid head position"))
+        Err(BBoolError::InvalidHeadPos(new))
     }
 
     /// Gets an immutable reference to the current head position.
@@ -467,12 +468,12 @@ impl<T: BitwiseOpsClone + Nums> BetterBool<T> {
     ///
     /// # Errors
     /// Returns an error if head position is invalid
-    pub fn get_cl(&self) -> Result<bool> {
+    pub fn get_cl(&self) -> Result<bool, BBoolError> {
             if self.reader_head_pos < Self::CAP {
                 let mask = T::one() << self.reader_head_pos.into();
                 return Ok((self.store.clone() & mask) != T::zero());
             }
-        Err(Error::msg("Invalid head position"))
+        Err(BBoolError::InvalidHeadPos(self.reader_head_pos))
     }
 
     /// Gets the bool at the current head position without validity checks. (clones self.store)
@@ -502,12 +503,12 @@ impl<T: BitwiseOpsClone + Nums> BetterBool<T> {
     ///
     /// # Errors
     /// Returns an error if position is invalid
-    pub fn get_cl_at_pos(&self, pos: u8) -> Result<bool> {
+    pub fn get_cl_at_pos(&self, pos: u8) -> Result<bool, BBoolError> {
             if pos < Self::CAP {
                 let mask = T::one() << pos;
                 return Ok((self.store.clone() & mask) != T::zero());
             }
-        Err(Error::msg("Invalid head position"))
+        Err(BBoolError::InvalidPos(pos))
     }
 
     /// Gets the bool at the given position without validity checks. (clones self.store)

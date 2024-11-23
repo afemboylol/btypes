@@ -1,7 +1,9 @@
 use crate::bbool::BetterBool;
+use crate::error::BBoolError;
 use crate::traits::{BitwiseOpsClone, BitwiseOpsCopy, Nums};
-use anyhow::{Error, Ok, Result};
+use anyhow::Result;
 use std::{collections::HashMap, marker::PhantomData};
+use anyhow::Error;
 
 pub type BN128 = BetterBoolNamed<u128>;
 pub type BN64 = BetterBoolNamed<u64>;
@@ -88,21 +90,21 @@ impl<T: Nums + BitwiseOpsCopy> BetterBoolNamed<T> {
     /// * The value pattern doesn't contain {r} and the count of bools in it doesn't match or exceed the count.
     /// * The value pattern contains invalid boolean values
     /// * Adding the bools would exceed capacity
-    pub fn mass_set(&mut self, count: u8, pattern: &str, value_pattern: &str) -> Result<()> {
+    pub fn mass_set(&mut self, count: u8, pattern: &str, value_pattern: &str) -> Result<(), BBoolError> {
         // Validate pattern contains {n}
         if !pattern.contains("{n}") {
-            return Err(Error::msg("Pattern must contain {n}"));
+            return Err(BBoolError::InvalidPattern("Pattern must contain {n}".to_string()));
         }
 
         // Parse value pattern
         let value_parts: Vec<&str> = value_pattern.trim().split(',').collect();
         if value_parts.is_empty() {
-            return Err(Error::msg("Value pattern cannot be empty"));
+            return Err(BBoolError::InvalidPattern("Value pattern cannot be empty".to_string()));
         }
         if !value_pattern.contains(&"{r}") && value_parts.len() < count.into() {
             println!("{}, {}", !value_parts.contains(&"{r}"), value_parts.len());
-            return Err(Error::msg(
-                "Value pattern must be able to fill all set bools",
+            return Err(BBoolError::InvalidPattern(
+                "Value pattern must be able to fill all set bools".to_string(),
             ));
         }
 
@@ -437,9 +439,9 @@ impl<T: Nums + BitwiseOpsCopy> BetterBoolNamed<T> {
     /// Returns an error if:
     /// * The collection has128 items)
     /// * Setting the value fails
-    pub fn add(&mut self, name: &str, value: bool) -> Result<()> {
+    pub fn add(&mut self, name: &str, value: bool) -> Result<(), BBoolError> {
         if self.names.len() >= 128 {
-            return Err(Error::msg("Capacity reached."));
+            return Err(BBoolError::CollectionCapacityReached);
         }
         self.names.insert(name.to_string(), self._next_assign);
         self.bools.set_at_pos(self._next_assign, value)?;
@@ -468,10 +470,10 @@ impl<T: Nums + BitwiseOpsCopy> BetterBoolNamed<T> {
     /// Returns an error if:
     /// * The name doesn't exist in the collection
     /// * Retrieving the value fails
-    pub fn get(&mut self, name: &str) -> Result<bool> {
+    pub fn get(&mut self, name: &str) -> Result<bool, BBoolError> {
         match self.names.get(name) {
             Some(&position) => Ok(self.bools.get_at_pos(position)?),
-            None => Err(Error::msg("Name not found")),
+            None => Err(BBoolError::NotFound(name.to_string())),
         }
     }
     /// Deletes a boolean value from the collection.
@@ -530,10 +532,10 @@ impl<T: Nums + BitwiseOpsClone> BetterBoolNamed<T> {
     /// Returns an error if:
     /// * The name doesn't exist in the collection
     /// * Retrieving the value fails
-    pub fn get_cl(&mut self, name: &str) -> Result<bool> {
+    pub fn get_cl(&mut self, name: &str) -> Result<bool, BBoolError> {
         match self.names.get(name) {
             Some(&position) => Ok(self.bools.get_cl_at_pos(position)?),
-            None => Err(Error::msg("Name not found")),
+            None => Err(BBoolError::NotFound(name.to_string())),
         }
     }
     /// Gets a clone of the raw numeric storage.

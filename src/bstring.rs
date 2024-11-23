@@ -9,20 +9,10 @@ use std::str::FromStr;
 use base64::engine::general_purpose;
 use base64::Engine;
 use serde::{Deserialize, Serialize};
+use crate::error::BStringError;
 
 /// A more convenient alias for BetterString
 pub type BStr = BetterString;
-
-/// Possible errors that can occur during BetterString operations
-#[derive(Debug, Clone, PartialEq)]
-pub enum BStringError {
-    EmptyString,
-    InvalidOperation(String),
-    ConversionError(String),
-    EncodingError(String),
-    ValidationError(String),
-    InvalidUtf8(String),
-}
 
 /// An enhanced string type that provides additional functionality
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
