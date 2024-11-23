@@ -39,6 +39,11 @@ all = ["named_bools", "bools", "strings", "inf_bools", "inf_named_bools"]
 [package.metadata.docs.rs]
 all-features = true
 
+[lints.clippy]
+all = "warn"
+pedantic = "warn"
+nursery = "warn"
+
 [dependencies]
 anyhow = "1.0.93"
 base64 = "0.22.1"

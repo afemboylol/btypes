@@ -1,10 +1,10 @@
 use std::{error::Error, fmt::Display};
-/// Errors that can occur during BetterString operations
+/// Errors that can occur during `BetterString` operations
 ///
 /// This enum represents various error conditions that may arise when working
-/// with BetterString operations including validation, encoding, and general
+/// with `BetterString` operations including validation, encoding, and general
 /// string manipulations.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum BStringError {
     /// Error when attempting to operate on an empty string
     EmptyString,
@@ -20,7 +20,7 @@ pub enum BStringError {
     InvalidUtf8(String),
 }
 
-/// Errors that can occur during BetterBool operations
+/// Errors that can occur during `BetterBool` operations
 ///
 /// This enum represents various error conditions that may arise when working
 /// with boolean collections, including position validation, pattern matching,
@@ -51,15 +51,15 @@ impl Display for BBoolError {
             f,
             "{}",
             match self {
-                BBoolError::InvalidHeadPos(pos) => format!("Invalid head position: {}", pos),
-                BBoolError::InvalidPos(pos) => format!("Invalid position: {}", pos),
-                BBoolError::InvalidHeadPosInf(pos) => format!("Invalid head position: {}", pos),
-                BBoolError::InvalidPosInf(pos) => format!("Invalid position: {}", pos),
-                BBoolError::NotFound(item) => format!("Item not found: {}", item),
-                BBoolError::InvalidPattern(pat) => format!("Invalid pattern: {}", pat),
-                BBoolError::CollectionCapacityReached =>
+                Self::InvalidHeadPos(pos) => format!("Invalid head position: {pos}"),
+                Self::InvalidPos(pos) => format!("Invalid position: {pos}"),
+                Self::InvalidHeadPosInf(pos) => format!("Invalid head position: {pos}"),
+                Self::InvalidPosInf(pos) => format!("Invalid position: {pos}"),
+                Self::NotFound(item) => format!("Item not found: {item}"),
+                Self::InvalidPattern(pat) => format!("Invalid pattern: {pat}"),
+                Self::CollectionCapacityReached =>
                     "Collection capacity has been reached".to_string(),
-                BBoolError::Other(s) => s.to_string(),
+                Self::Other(s) => s.to_string(),
             }
         )
     }
@@ -67,7 +67,7 @@ impl Display for BBoolError {
 
 impl From<anyhow::Error> for BBoolError {
     fn from(error: anyhow::Error) -> Self {
-        BBoolError::Other(error.to_string())
+        Self::Other(error.to_string())
     }
 }
 
