@@ -6,7 +6,7 @@ pub mod named_bools;
 pub mod bbool;
 /// Traits used by different feature's structs.
 pub mod traits;
-//#[cfg(feature = "strings")]
+#[cfg(feature = "strings")]
 pub mod bstring;
 
 mod tests;
