@@ -9,7 +9,7 @@ pub type BNInf = BetterBoolNamedInf;
 
 /// A dynamically-sized collection of named boolean values
 ///
-/// This struct combines the unlimited capacity of BetterBoolInf with
+/// This struct combines the unlimited capacity of `BetterBoolInf` with
 /// the ability to access boolean values by name rather than position.
 #[derive(Default)]
 pub struct BetterBoolNamedInf {
@@ -22,10 +22,10 @@ pub struct BetterBoolNamedInf {
 }
 
 impl BetterBoolNamedInf {
-    /// Creates a new BetterBoolNamedInf instance with a specified initial vector value.
+    /// Creates a new `BetterBoolNamedInf` instance with a specified initial vector value.
     ///
     /// # Arguments
-    /// * initial_value - The initial vector to store the boolean states
+    /// * `initial_value` - The initial vector to store the boolean states
     ///
     /// # Examples
     /// ```
@@ -33,7 +33,7 @@ impl BetterBoolNamedInf {
     /// let bools = BNInf::from_vec(vec![0b01010110]);
     /// ```
     ///
-    pub fn from_vec(initial_value: Vec<u8>) -> Self {
+    #[must_use] pub fn from_vec(initial_value: Vec<u8>) -> Self {
         let bools = BetterBoolInf {
             store: initial_value,
             reader_head_pos: 0,
@@ -46,7 +46,7 @@ impl BetterBoolNamedInf {
         }
     }
 
-    /// Creates a new empty BetterBoolNamedInf instance initialized with an empty vector.
+    /// Creates a new empty `BetterBoolNamedInf` instance initialized with an empty vector.
     ///
     /// # Examples
     /// ```
@@ -54,7 +54,7 @@ impl BetterBoolNamedInf {
     /// let bools = BNInf::new();
     /// ```
     ///
-    pub fn new() -> Self {
+    #[must_use] pub fn new() -> Self {
         Default::default()
     }
 
@@ -63,7 +63,7 @@ impl BetterBoolNamedInf {
     /// # Arguments
     /// * count - Number of bools to set/add
     /// * pattern - Name pattern containing {n} which will be replaced with sequential numbers (0 to count-1)
-    /// * value_pattern - Comma-separated list of boolean values with optional {r} suffix to repeat the pattern (if list length does not contain {r}, or exceed)
+    /// * `value_pattern` - Comma-separated list of boolean values with optional {r} suffix to repeat the pattern (if list length does not contain {r}, or exceed)
     ///
     /// # Examples
     /// ```
@@ -227,7 +227,7 @@ impl BetterBoolNamedInf {
         Ok(())
     }
 
-    /// Returns a new BetterBoolNamedInf instance with contents sorted by name.
+    /// Returns a new `BetterBoolNamedInf` instance with contents sorted by name.
     ///
     /// # Examples
     /// ```
@@ -287,7 +287,7 @@ impl BetterBoolNamedInf {
     /// let names = bools.all_names_cl();
     /// ```
     ///
-    pub fn all_names_cl(&self) -> HashMap<String, u128> {
+    #[must_use] pub fn all_names_cl(&self) -> HashMap<String, u128> {
         self.names.clone()
     }
 
@@ -300,7 +300,7 @@ impl BetterBoolNamedInf {
     /// let names = bools.all_names();
     /// ```
     ///
-    pub fn all_names(&self) -> &HashMap<String, u128> {
+    #[must_use] pub const fn all_names(&self) -> &HashMap<String, u128> {
         &self.names
     }
 
@@ -335,7 +335,7 @@ impl BetterBoolNamedInf {
     /// Returns an error if retrieving any boolean value fails
     pub fn all(&mut self) -> Result<HashMap<String, bool>> {
         let mut result = HashMap::new();
-        for (name, &position) in self.names.iter() {
+        for (name, &position) in &self.names {
             result.insert(name.clone(), self.bools.get_at_pos(position)?);
         }
         Ok(result)
@@ -418,7 +418,7 @@ impl BetterBoolNamedInf {
     /// let raw = bools.get_raw();
     /// ```
     ///
-    pub fn get_raw(&self) -> &Vec<u8> {
+    #[must_use] pub const fn get_raw(&self) -> &Vec<u8> {
         self.bools.get_raw()
     }
 

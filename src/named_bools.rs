@@ -5,22 +5,22 @@ use anyhow::Error;
 use anyhow::Result;
 use std::{collections::HashMap, marker::PhantomData};
 
-/// Type alias for a 128-bit named BetterBool
+/// Type alias for a 128-bit named `BetterBool`
 pub type BN128 = BetterBoolNamed<u128>;
-/// Type alias for a 64-bit named BetterBool
+/// Type alias for a 64-bit named `BetterBool`
 pub type BN64 = BetterBoolNamed<u64>;
-/// Type alias for a 32-bit named BetterBool
+/// Type alias for a 32-bit named `BetterBool`
 pub type BN32 = BetterBoolNamed<u32>;
-/// Type alias for a 16-bit named BetterBool
+/// Type alias for a 16-bit named `BetterBool`
 pub type BN16 = BetterBoolNamed<u16>;
-/// Type alias for an 8-bit named BetterBool
+/// Type alias for an 8-bit named `BetterBool`
 pub type BN8 = BetterBoolNamed<u8>;
-/// Generic type alias for named BetterBool with any numeric type T
+/// Generic type alias for named `BetterBool` with any numeric type T
 pub type BNBool<T> = BetterBoolNamed<T>;
 
 /// A fixed-size collection of named boolean values
 ///
-/// This struct combines the fixed-size storage of BetterBool with the ability
+/// This struct combines the fixed-size storage of `BetterBool` with the ability
 /// to access boolean values by name rather than position.
 pub struct BetterBoolNamed<T: Nums> {
     /// The underlying boolean storage
@@ -36,7 +36,7 @@ impl<T: Nums> Default for BetterBoolNamed<T>
     fn default() -> Self {
         Self
         {
-            bools: Default::default(),
+            bools: BetterBool::default(),
             names: HashMap::new(),
             _next_assign: 0,
         }
@@ -44,7 +44,7 @@ impl<T: Nums> Default for BetterBoolNamed<T>
 }
 
 impl<T: BitwiseOpsCopy> BetterBoolNamed<T> {
-    /// Creates a new BetterBoolNamed instance with a specified initial value.
+    /// Creates a new `BetterBoolNamed` instance with a specified initial value.
     ///
     /// # Arguments
     /// * `initial_value` - The initial numeric value to store the boolean states
@@ -66,15 +66,15 @@ impl<T: BitwiseOpsCopy> BetterBoolNamed<T> {
             _next_assign: 0,
         }
     }
-    /// Creates a new empty BetterBoolNamed instance initialized with zeros.
+    /// Creates a new empty `BetterBoolNamed` instance initialized with zeros.
     ///
     /// # Examples
     /// ```
     /// use btypes::named_bools::BN128;
     /// let bools = BN128::new();
     /// ```
-    pub fn new() -> Self {
-        Default::default()
+    #[must_use] pub fn new() -> Self {
+        Self::default()
     }
     /// Set/add many named bools, with the names being dictated by the pattern and the values by the value pattern.
     ///
@@ -244,7 +244,7 @@ impl<T: BitwiseOpsCopy> BetterBoolNamed<T> {
         self.bools = b.bools;
         Ok(())
     }
-    /// Returns a new BetterBoolNamed instance with contents sorted by name.
+    /// Returns a new `BetterBoolNamed` instance with contents sorted by name.
     ///
     /// # Examples
     /// ```
@@ -315,7 +315,7 @@ impl<T: BitwiseOpsCopy> BetterBoolNamed<T> {
     /// let bools = BN128::new();
     /// let names = bools.all_names();
     /// ```
-    pub fn all_names(&self) -> &HashMap<String, u8> {
+    pub const fn all_names(&self) -> &HashMap<String, u8> {
         &self.names
     }
     /// Returns a mutable reference to the internal name-to-position mapping.
@@ -329,7 +329,7 @@ impl<T: BitwiseOpsCopy> BetterBoolNamed<T> {
     pub fn all_names_mut(&mut self) -> &mut HashMap<String, u8> {
         &mut self.names
     }
-    /// Returns a HashMap containing all name-value pairs in the collection.
+    /// Returns a `HashMap` containing all name-value pairs in the collection.
     ///
     /// # Examples
     /// ```
@@ -347,7 +347,7 @@ impl<T: BitwiseOpsCopy> BetterBoolNamed<T> {
     /// Returns an error if retrieving any boolean value fails
     pub fn all(&mut self) -> Result<HashMap<String, bool>> {
         let mut result = HashMap::new();
-        for (name, &position) in self.names.iter() {
+        for (name, &position) in &self.names {
             result.insert(name.clone(), self.bools.get_at_pos(position)?);
         }
         Ok(result)
@@ -430,7 +430,7 @@ impl<T: BitwiseOpsCopy> BetterBoolNamed<T> {
     /// let bools = BN128::new();
     /// let raw = bools.get_raw();
     /// ```
-    pub fn get_raw(&self) -> &T {
+    pub const fn get_raw(&self) -> &T {
         self.bools.get_raw()
     }
     /// Gets a mutable reference to the raw numeric storage.

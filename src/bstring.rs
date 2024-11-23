@@ -8,7 +8,7 @@ use std::fmt::{Display, Error};
 use std::ops::{Add, AddAssign, Div, DivAssign, Index, Mul, MulAssign, Sub, SubAssign};
 use std::str::FromStr;
 
-/// A more convenient alias for BetterString
+/// A more convenient alias for `BetterString`
 pub type BStr = BetterString;
 
 /// An enhanced string type that provides additional functionality
@@ -29,7 +29,7 @@ impl Index<usize> for BetterString {
 // Add string validation methods
 impl BetterString {
     /// Validates if the string matches a given pattern
-    pub fn matches_pattern(&self, pattern: &str) -> bool {
+    #[must_use] pub fn matches_pattern(&self, pattern: &str) -> bool {
         if let Ok(s) = std::str::from_utf8(&self.bytes) {
             match regex::Regex::new(pattern) {
                 Ok(re) => re.is_match(s),
@@ -41,7 +41,7 @@ impl BetterString {
     }
 
     /// Validates if the string is a valid URL
-    pub fn is_valid_url(&self) -> bool {
+    #[must_use] pub fn is_valid_url(&self) -> bool {
         if let Ok(s) = std::str::from_utf8(&self.bytes) {
             url::Url::parse(s).is_ok()
         } else {
@@ -50,7 +50,7 @@ impl BetterString {
     }
 
     /// Validates if the string is a valid IPv4 address
-    pub fn is_valid_ipv4(&self) -> bool {
+    #[must_use] pub fn is_valid_ipv4(&self) -> bool {
         if let Ok(s) = std::str::from_utf8(&self.bytes) {
             s.split('.').filter_map(|s| s.parse::<u8>().ok()).count() == 4
         } else {
@@ -62,7 +62,7 @@ impl BetterString {
 // Add encoding conversion methods
 impl BetterString {
     /// Converts the string to base64 encoding
-    pub fn to_base64(&self) -> String {
+    #[must_use] pub fn to_base64(&self) -> String {
         general_purpose::STANDARD.encode(&self.bytes)
     }
 
@@ -75,7 +75,7 @@ impl BetterString {
     }
 
     /// Converts the string to URL-safe encoding
-    pub fn to_url_encoded(&self) -> String {
+    #[must_use] pub fn to_url_encoded(&self) -> String {
         if let Ok(s) = std::str::from_utf8(&self.bytes) {
             urlencoding::encode(s).into_owned()
         } else {
@@ -94,7 +94,7 @@ impl BetterString {
 // Add pattern matching support
 impl BetterString {
     /// Finds all matches of a pattern in the string
-    pub fn find_all(&self, pattern: &str) -> Vec<(usize, String)> {
+    #[must_use] pub fn find_all(&self, pattern: &str) -> Vec<(usize, String)> {
         if let Ok(s) = std::str::from_utf8(&self.bytes) {
             let re = regex::Regex::new(pattern)
                 .unwrap_or_else(|_| regex::Regex::new(&regex::escape(pattern)).unwrap());
@@ -107,7 +107,7 @@ impl BetterString {
     }
 
     /// Replaces all matches of a pattern with a replacement string
-    pub fn replace_all(&self, pattern: &str, replacement: &str) -> Self {
+    #[must_use] pub fn replace_all(&self, pattern: &str, replacement: &str) -> Self {
         if let Ok(s) = std::str::from_utf8(&self.bytes) {
             let re = regex::Regex::new(pattern)
                 .unwrap_or_else(|_| regex::Regex::new(&regex::escape(pattern)).unwrap());
@@ -121,7 +121,7 @@ impl BetterString {
 // Add additional utility methods
 impl BetterString {
     /// Reverses the string
-    pub fn reverse(&self) -> Self {
+    #[must_use] pub fn reverse(&self) -> Self {
         if let Ok(s) = std::str::from_utf8(&self.bytes) {
             Self::new(s.chars().rev().collect::<String>())
         } else {
@@ -143,7 +143,7 @@ impl BetterString {
     }
 
     /// Checks if the string is a palindrome
-    pub fn is_palindrome(&self) -> bool {
+    #[must_use] pub fn is_palindrome(&self) -> bool {
         if let Ok(s) = std::str::from_utf8(&self.bytes) {
             let cleaned = s
                 .chars()
@@ -158,7 +158,7 @@ impl BetterString {
 }
 
 impl BetterString {
-    /// Creates a new BetterString from any type that can be converted to a string
+    /// Creates a new `BetterString` from any type that can be converted to a string
     ///
     /// # Examples
     /// ```
@@ -172,31 +172,31 @@ impl BetterString {
     }
 
     /// Returns the length of the string in bytes
-    pub fn len(&self) -> usize {
+    #[must_use] pub fn len(&self) -> usize {
         self.bytes.len()
     }
 
     /// Returns true if the string is empty
-    pub fn is_empty(&self) -> bool {
+    #[must_use] pub fn is_empty(&self) -> bool {
         self.bytes.is_empty()
     }
 
     /// Returns an uppercase version of the string
-    pub fn to_uppercase(&self) -> String {
+    #[must_use] pub fn to_uppercase(&self) -> String {
         std::str::from_utf8(&self.bytes)
-            .map(|s| s.to_uppercase())
+            .map(str::to_uppercase)
             .unwrap_or_default()
     }
 
     /// Returns a lowercase version of the string
-    pub fn to_lowercase(&self) -> String {
+    #[must_use] pub fn to_lowercase(&self) -> String {
         std::str::from_utf8(&self.bytes)
-            .map(|s| s.to_lowercase())
+            .map(str::to_lowercase)
             .unwrap_or_default()
     }
 
     /// Returns a string with whitespace removed from both ends
-    pub fn trim(&self) -> String {
+    #[must_use] pub fn trim(&self) -> String {
         std::str::from_utf8(&self.bytes)
             .map(|s| s.trim().to_string())
             .unwrap_or_default()
@@ -215,14 +215,14 @@ impl BetterString {
     }
 
     /// Returns a new string with all occurrences of `from` replaced with `to`
-    pub fn replace(&self, from: &str, to: &str) -> String {
+    #[must_use] pub fn replace(&self, from: &str, to: &str) -> String {
         std::str::from_utf8(&self.bytes)
             .map(|s| s.replace(from, to))
             .unwrap_or_default()
     }
 
     /// Returns true if the string contains the given substring
-    pub fn contains(&self, substr: &str) -> bool {
+    #[must_use] pub fn contains(&self, substr: &str) -> bool {
         if let Ok(s) = std::str::from_utf8(&self.bytes) {
             s.contains(substr)
         } else {
@@ -231,7 +231,7 @@ impl BetterString {
     }
 
     /// Returns true if the string starts with the given prefix
-    pub fn starts_with(&self, prefix: &str) -> bool {
+    #[must_use] pub fn starts_with(&self, prefix: &str) -> bool {
         if let Ok(s) = std::str::from_utf8(&self.bytes) {
             s.starts_with(prefix)
         } else {
@@ -240,7 +240,7 @@ impl BetterString {
     }
 
     /// Returns true if the string ends with the given suffix
-    pub fn ends_with(&self, suffix: &str) -> bool {
+    #[must_use] pub fn ends_with(&self, suffix: &str) -> bool {
         if let Ok(s) = std::str::from_utf8(&self.bytes) {
             s.ends_with(suffix)
         } else {
@@ -288,7 +288,7 @@ impl BetterString {
     ///
     /// Note: This is a basic implementation and should not be used for
     /// production email validation
-    pub fn is_valid_email(&self) -> bool {
+    #[must_use] pub fn is_valid_email(&self) -> bool {
         if let Ok(s) = std::str::from_utf8(&self.bytes) {
             let parts: Vec<&str> = s.split('@').collect();
 
@@ -325,7 +325,7 @@ impl BetterString {
     }
 
     /// Returns the number of words in the string
-    pub fn word_count(&self) -> usize {
+    #[must_use] pub fn word_count(&self) -> usize {
         if let Ok(s) = std::str::from_utf8(&self.bytes) {
             s.split_whitespace().count()
         } else {
@@ -466,7 +466,7 @@ impl BetterString {
     // Returns a reference to the underlying bytes of the string
     ///
     /// This method provides direct access to the raw bytes that make up the string.
-    pub fn as_bytes(&self) -> &[u8] {
+    #[must_use] pub fn as_bytes(&self) -> &[u8] {
         &self.bytes
     }
     /// Returns a mutable reference to the underlying bytes of the string
@@ -479,24 +479,20 @@ impl BetterString {
     /// Consumes the string and returns the underlying byte vector
     ///
     /// This method transfers ownership of the internal bytes to the caller
-    pub fn into_bytes(self) -> Vec<u8> {
+    #[must_use] pub fn into_bytes(self) -> Vec<u8> {
         self.bytes
     }
     /// Returns an iterator over the characters of the string
     ///
     /// If the string contains invalid UTF-8, returns an iterator over an empty string
     pub fn chars(&self) -> std::str::Chars<'_> {
-        std::str::from_utf8(&self.bytes)
-            .map(|s| s.chars())
-            .unwrap_or_else(|_| "".chars())
+        std::str::from_utf8(&self.bytes).map_or_else(|_| "".chars(), |s| s.chars())
     }
     /// Returns an iterator over the characters of the string with their byte indices
     ///
     /// If the string contains invalid UTF-8, returns an iterator over an empty string
     pub fn char_indices(&self) -> std::str::CharIndices<'_> {
-        std::str::from_utf8(&self.bytes)
-            .map(|s| s.char_indices())
-            .unwrap_or_else(|_| "".char_indices())
+        std::str::from_utf8(&self.bytes).map_or_else(|_| "".char_indices(), |s| s.char_indices())
     }
 }
 
@@ -536,7 +532,7 @@ impl BetterString {
 // Implement Into<String>
 impl From<BetterString> for String {
     fn from(val: BetterString) -> Self {
-        String::from_utf8(val.bytes).unwrap_or_default()
+        Self::from_utf8(val.bytes).unwrap_or_default()
     }
 }
 
@@ -544,7 +540,7 @@ impl From<BetterString> for String {
 impl Display for BetterString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match std::str::from_utf8(&self.bytes) {
-            Ok(s) => write!(f, "{}", s),
+            Ok(s) => write!(f, "{s}"),
             Err(_) => write!(f, "<invalid utf-8>"),
         }
     }

@@ -30,7 +30,7 @@ For more examples, see the individual module documentation.
 #[cfg(feature = "named_bools")]
 /// Named boolean collections with fixed capacity
 ///
-/// This module provides BetterBoolNamed types that allow storing and accessing boolean values
+/// This module provides `BetterBoolNamed` types that allow storing and accessing boolean values
 /// by name within a fixed-size container. Available in different sizes (8 to 128 bits).
 ///
 /// # Example
@@ -50,7 +50,7 @@ pub mod named_bools;
 #[cfg(feature = "bools")]
 /// Fixed-capacity boolean collections
 ///
-/// This module provides BetterBool types for efficient storage and manipulation of
+/// This module provides `BetterBool` types for efficient storage and manipulation of
 /// boolean values in fixed-size containers. Available in different sizes (8 to 128 bits).
 ///
 /// # Example
@@ -70,7 +70,7 @@ pub mod bbool;
 #[cfg(feature = "inf_bools")]
 /// Dynamically-sized boolean collections
 ///
-/// This module provides a vector-backed implementation of BetterBool that can grow
+/// This module provides a vector-backed implementation of `BetterBool` that can grow
 /// dynamically as needed, limited only by available memory.
 ///
 /// # Example
@@ -89,7 +89,7 @@ pub mod inf_bbool;
 #[cfg(feature = "inf_named_bools")]
 /// Dynamically-sized named boolean collections
 ///
-/// This module provides a vector-backed implementation of BetterBoolNamed that can grow
+/// This module provides a vector-backed implementation of `BetterBoolNamed` that can grow
 /// dynamically as needed, allowing named boolean values to be stored and accessed with
 /// virtually unlimited capacity.
 ///
@@ -115,7 +115,7 @@ pub mod traits;
 #[cfg(feature = "strings")]
 /// Enhanced string type with additional functionality
 ///
-/// This module provides BetterString, a more feature-rich alternative to the standard
+/// This module provides `BetterString`, a more feature-rich alternative to the standard
 /// String type, offering additional operations for pattern matching, validation,
 /// and encoding conversions.
 ///

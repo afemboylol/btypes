@@ -3,17 +3,17 @@ use crate::traits::{BitwiseOpsClone, BitwiseOpsCopy, Nums};
 use anyhow::Result;
 use std::marker::PhantomData;
 
-/// Type alias for a 128-bit BetterBool
+/// Type alias for a 128-bit `BetterBool`
 pub type B128 = BetterBool<u128>;
-/// Type alias for a 64-bit BetterBool
+/// Type alias for a 64-bit `BetterBool`
 pub type B64 = BetterBool<u64>;
-/// Type alias for a 32-bit BetterBool
+/// Type alias for a 32-bit `BetterBool`
 pub type B32 = BetterBool<u32>;
-/// Type alias for a 16-bit BetterBool
+/// Type alias for a 16-bit `BetterBool`
 pub type B16 = BetterBool<u16>;
-/// Type alias for an 8-bit BetterBool
+/// Type alias for an 8-bit `BetterBool`
 pub type B8 = BetterBool<u8>;
-/// Generic type alias for BetterBool with any numeric type T
+/// Generic type alias for `BetterBool` with any numeric type T
 pub type BBool<T> = BetterBool<T>;
 
 /// A fixed-size boolean collection stored efficiently in numeric types
@@ -45,14 +45,14 @@ impl<T: Nums> BetterBool<T> {
 }
 
 impl<T: BitwiseOpsCopy> BetterBool<T> {
-    /// Creates a new empty BetterBool instance initialized with zeros.
+    /// Creates a new empty `BetterBool` instance initialized with zeros.
     ///
     /// # Examples
     /// ```
     /// use btypes::bbool::B128;
     /// let bools = B128::new();
     /// ```
-    pub fn new() -> Self {
+    #[must_use] pub fn new() -> Self {
         Self {
             store: T::zero(),
             reader_head_pos: 0,
@@ -60,7 +60,7 @@ impl<T: BitwiseOpsCopy> BetterBool<T> {
         }
     }
 
-    /// Creates a new BetterBool instance with a specified initial value.
+    /// Creates a new `BetterBool` instance with a specified initial value.
     ///
     /// # Arguments
     /// * `initial_value` - The initial numeric value to store the boolean states
@@ -70,7 +70,7 @@ impl<T: BitwiseOpsCopy> BetterBool<T> {
     /// use btypes::bbool::B128;
     /// let bools = B128::from_num(42);
     /// ```
-    pub fn from_num(initial_value: T) -> Self {
+    pub const fn from_num(initial_value: T) -> Self {
         Self {
             store: initial_value,
             reader_head_pos: 0,
@@ -101,7 +101,7 @@ impl<T: BitwiseOpsCopy> BetterBool<T> {
         Ok(out)
     }
 
-    /// Returns a new BetterBool<T> that has been sorted.
+    /// Returns a new `BetterBool`<T> that has been sorted.
     ///
     /// # Examples
     /// ```
@@ -116,11 +116,11 @@ impl<T: BitwiseOpsCopy> BetterBool<T> {
     ///
     /// # Errors
     /// Returns an error if sorting operation fails
-    pub fn sorted(&mut self) -> Result<BetterBool<T>> {
+    pub fn sorted(&mut self) -> Result<Self> {
         let mut bools = self.all()?;
-        bools.sort();
+        bools.sort_unstable();
 
-        let mut sorted = BetterBool::new();
+        let mut sorted = Self::new();
         for (i, &value) in bools.iter().enumerate() {
             sorted.set_at_pos(i as u8, value)?;
         }
@@ -206,7 +206,7 @@ impl<T: BitwiseOpsCopy> BetterBool<T> {
     /// let bools = B8::from_num(5);
     /// let raw = bools.get_raw();
     /// ```
-    pub fn get_raw(&self) -> &T {
+    pub const fn get_raw(&self) -> &T {
         &self.store
     }
 
@@ -442,7 +442,7 @@ impl<T: BitwiseOpsCopy> BetterBool<T> {
     /// let bools = B8::new();
     /// let head_pos = bools.ghp();
     /// ```
-    pub fn ghp(&self) -> &u8 {
+    pub const fn ghp(&self) -> &u8 {
         &self.reader_head_pos
     }
 

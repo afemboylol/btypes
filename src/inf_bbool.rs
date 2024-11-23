@@ -2,7 +2,7 @@ use crate::error::BBoolError;
 use anyhow::Result;
 use std::marker::PhantomData;
 
-/// Type alias for the infinite-capacity BetterBool implementation
+/// Type alias for the infinite-capacity `BetterBool` implementation
 pub type BInf = BetterBoolInf;
 
 /// A dynamically-sized boolean collection backed by a vector
@@ -29,23 +29,23 @@ impl Default for BetterBoolInf {
 }
 
 impl BetterBoolInf {
-    /// The limit of the "Infinite" BetterBool will unfortunately be finite, due to limitations of the head position without unnecessary complexity.
+    /// The limit of the "Infinite" `BetterBool` will unfortunately be finite, due to limitations of the head position without unnecessary complexity.
     pub const CAP: u128 = u128::MAX;
 }
 
 impl BetterBoolInf {
-    /// Creates a new empty BetterBoolInf instance initialized with an empty vector.
+    /// Creates a new empty `BetterBoolInf` instance initialized with an empty vector.
     ///
     /// # Examples
     /// ```
     /// use btypes::inf_bbool::BInf;
     /// let bools = BInf::new();
     /// ```
-    pub fn new() -> Self {
+    #[must_use] pub fn new() -> Self {
         Self::default()
     }
 
-    /// Creates a new BetterBoolInf instance with a specified initial vector of bytes.
+    /// Creates a new `BetterBoolInf` instance with a specified initial vector of bytes.
     ///
     /// # Arguments
     /// * `initial_value` - The initial vector of bytes to store the boolean states
@@ -55,7 +55,7 @@ impl BetterBoolInf {
     /// use btypes::inf_bbool::BInf;
     /// let bools = BInf::from_vec(vec![42]);
     /// ```
-    pub fn from_vec(initial_value: Vec<u8>) -> Self {
+    #[must_use] pub const fn from_vec(initial_value: Vec<u8>) -> Self {
         Self {
             store: initial_value,
             reader_head_pos: 0,
@@ -87,7 +87,7 @@ impl BetterBoolInf {
         Ok(out)
     }
 
-    /// Returns a new BetterBoolInf that has been sorted.
+    /// Returns a new `BetterBoolInf` that has been sorted.
     ///
     /// # Examples
     /// ```
@@ -102,11 +102,11 @@ impl BetterBoolInf {
     ///
     /// # Errors
     /// Returns an error if sorting operation fails
-    pub fn sorted(&mut self) -> Result<BetterBoolInf> {
+    pub fn sorted(&mut self) -> Result<Self> {
         let mut bools = self.all()?;
-        bools.sort();
+        bools.sort_unstable();
 
-        let mut sorted = BetterBoolInf::new();
+        let mut sorted = Self::new();
         for (i, &value) in bools.iter().enumerate() {
             sorted.set_at_pos(i.try_into()?, value)?;
         }
@@ -180,7 +180,7 @@ impl BetterBoolInf {
     ///
     /// # Safety
     /// This function performs no bounds checking. The caller must ensure the head position is valid.
-    pub unsafe fn get_unchecked(&self) -> bool {
+    #[must_use] pub unsafe fn get_unchecked(&self) -> bool {
         let byte_index = (self.reader_head_pos / 8) as usize;
         let bit_offset = self.reader_head_pos % 8;
 
@@ -199,7 +199,7 @@ impl BetterBoolInf {
     ///
     /// # Safety
     /// This function performs no bounds checking. the position is valid.
-    pub unsafe fn get_unchecked_at_pos(&self, pos: u128) -> bool {
+    #[must_use] pub unsafe fn get_unchecked_at_pos(&self, pos: u128) -> bool {
         let byte_index = (pos / 8) as usize;
         let bit_offset = pos % 8;
 
@@ -266,7 +266,7 @@ impl BetterBoolInf {
     /// let bools = BInf::from_vec(vec![5]);
     /// let raw = bools.get_raw();
     /// ```
-    pub fn get_raw(&self) -> &Vec<u8> {
+    #[must_use] pub const fn get_raw(&self) -> &Vec<u8> {
         &self.store
     }
 
@@ -486,7 +486,7 @@ impl BetterBoolInf {
     /// let head_pos = bools.ghp();
     /// ```
     ///
-    pub fn ghp(&self) -> &u128 {
+    #[must_use] pub const fn ghp(&self) -> &u128 {
         &self.reader_head_pos
     }
 
