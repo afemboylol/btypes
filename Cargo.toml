@@ -1,10 +1,11 @@
 [package]
 name = "btypes"
-version = "0.2.2"
+version = "0.2.3"
 edition = "2021"
 authors = ["A User"]
 description = "For when you dislike normal types, I guess."
 license = "GPL-3.0"
+repository = "https://github.com/afemboylol/btypes"
 
 [lib]
 name = "btypes"
