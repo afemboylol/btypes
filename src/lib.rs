@@ -7,6 +7,7 @@ pub mod bbool;
 /// Traits used by different feature's structs.
 pub mod traits;
 #[cfg(feature = "strings")]
+// The BetterString feature.
 pub mod bstring;
 
 pub mod error;

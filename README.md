@@ -1,69 +1,97 @@
 # btypes
 
-A Rust library providing enhanced types with additional features and functionality.
+A Rust library providing enhanced types with rich functionality for string manipulation and boolean state management, eventually more.
 
-## Features
+## Key Features
 
-- **BetterString**: An enhanced string type with additional operations and utility methods
-  - String validation (email, URL, IPv4)
-  - Pattern matching and replacement
-  - Base64 and URL encoding/decoding
-  - Arithmetic operations (concatenation, multiplication)
-  - Advanced string manipulation methods
+### BetterString
+A feature-rich string type offering:
+- Validation for common formats:
+  - Email addresses
+  - URLs
+  - IPv4 addresses
+- Pattern matching with regex support
+- Encoding/decoding:
+  - Base64
+  - URL encoding
+- String operations:
+  - Concatenation using `+` operator
+  - Arithmetic operations (* repeats a string N times, / counts occurences, and - removes a substring. /= keeps only the first occurence.)
+  - Case transformations
+  - Pattern finding and replacement
 
-- **Boolean Types**
-  - Advanced boolean operations
-  - Named boolean states
-  - State management capabilities
-  - Raw binary access
+### Named Boolean Types
+Multiple capacity options for different use cases:
+- `BN128`: 128-bit capacity
+- `BN64`: 64-bit capacity
+- `BN32`: 32-bit capacity
+- `BN16`: 16-bit capacity
+- `BN8`: 8-bit capacity
+- Any custom type which implements Nums and either BitwiseOpsClone or BitwiseOpsCopy.
 
-## Installation
+Features include:
+- Named boolean state management
+- Raw binary access and manipulation
+- Bulk operations and pattern-based flag setting
+- Sorting capabilities
+- Capacity management and error handling
 
-Add this to your `Cargo.toml`:
+## Coming Soon
+- Any user suggestions I am capable of
+- Infinite capacity BetterBool?
+- More string operations and utilities
 
-```toml
-[dependencies]
-btypes = "0.2.2"
-```
+## Usage Examples
 
-## Feature Flags
-
-The library supports the following feature flags:
-
-- `named_bools`: Enables named boolean functionality (includes `bools`)
-- `bools`: Basic boolean functionality
-- `strings`: String enhancement functionality
-- `all`: Enables all features
-
-## Examples
-
-### BetterString Usage
-
+### String Operations
 ```rust
 use btypes::bstring::BetterString;
 
 fn main() {
-    // Basic string operations
-    let mut stri = BetterString::new("Hello, World!");
-    println!("Original: {}", stri);
-    println!("Uppercase: {}", stri.to_uppercase());
-
-    // Validation
+    // Basic string manipulation
+    let mut text = BetterString::new("Hello, World!");
+    println!("Original: {}", text);
+    
+    // Pattern matching
     let email = BetterString::new("user@example.com");
-    println!("Is valid email: {}", email.is_valid_email());
-
+    println!("Valid email: {}", email.is_valid_email());
+    
     // Encoding
-    let encoded = stri.to_base64();
-    println!("Base64 encoded: {}", encoded);
+    println!("Base64: {}", text.to_base64());
 }
 ```
 
-### Boolean Operations
+### Boolean State Management
+```rust
+use btypes::named_bools::BN128;
 
-See the examples directory for detailed boolean operation examples:
-- `examples/bool_ex.rs`
-- `examples/low_cap_bool_ex.rs`
+fn main() -> anyhow::Result<()> {
+    let mut state = BN128::new();
+    
+    // State management
+    state.set("is_active", true)?;
+    state.set("is_validated", false)?;
+    
+    // Binary operations
+    println!("Raw state: {:b}", state.get_raw());
+    Ok(())
+}
+```
+
+## Feature Flags
+- `named_bools`: Enable named boolean types (includes `bools`)
+- `bools`: Basic boolean operations
+- `strings`: String enhancement functionality
+- `all`: Enable all features
+
+## Examples
+Full working examples available in:
+- `/examples/string_ex.rs`: String manipulation demos
+- `/examples/bool_ex.rs`: Advanced boolean operations
+- `/examples/low_cap_bool_ex.rs`: Different capacity boolean types
 
 ## License
+Licensed under GPL-3.0
 
-This project is licensed under the GPL-3.0 License.
+## Contributing
+Contributions are welcome! Please feel free to submit pull requests, bug reports, or feature suggestions.
