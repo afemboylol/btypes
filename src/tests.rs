@@ -168,9 +168,9 @@ mod string_tests {
         let str1 = BetterString::new("Hello");
         assert_eq!(str1.len(), 5);
         assert!(!str1.is_empty());
-        assert_eq!(str1.to_uppercase(), "HELLO");
-        assert_eq!(str1.to_lowercase(), "hello");
-    }
+        assert_eq!(str1.to_uppercase(), BetterString::from("HELLO"));
+        assert_eq!(str1.to_lowercase(), BetterString::from("hello"));
+    }    
 
     #[test]
     fn test_string_validation() {
@@ -231,9 +231,9 @@ mod string_tests {
     #[test]
     fn test_utility_methods() {
         let text = BetterString::new("  Hello World  ");
-        assert_eq!(text.trim(), "Hello World");
+        assert_eq!(text.trim(), BetterString::from("Hello World"));
 
-        let words: Vec<String> = text
+        let words: Vec<BetterString> = text
             .split(" ")
             .into_iter()
             .filter(|s| !s.is_empty())

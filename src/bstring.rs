@@ -3,16 +3,42 @@ use base64::engine::general_purpose;
 use base64::Engine;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Error};
-use std::ops::{Add, AddAssign, Deref, DerefMut, Div, DivAssign, Index, Mul, MulAssign, Sub, SubAssign};
+use std::hash::Hash;
+use std::ops::{
+    Add, AddAssign, Deref, DerefMut, Div, DivAssign, Index, Mul, MulAssign, Sub, SubAssign,
+};
 use std::str::FromStr;
+
+// This is really a trash type ngl. For a type in "BetterTypes" it's not good enough.
 
 /// A more convenient alias for `BetterString`
 pub type BStr = BetterString;
 
 /// An enhanced string type that provides additional functionality
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Eq)]
 pub struct BetterString {
     bytes: Vec<u8>,
+}
+
+impl Hash for BetterString
+{
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        state.write(&self.bytes);
+    }
+}
+
+impl PartialEq<&str> for BetterString
+{
+    fn eq(&self, other: &&str) -> bool {
+        &self.as_str() == other
+    }
+}
+
+impl PartialEq<Self> for BetterString
+{
+    fn eq(&self, other: &Self) -> bool {
+        self.bytes == other.bytes
+    }
 }
 
 impl Serialize for BetterString {
@@ -45,9 +71,7 @@ impl<'de> Deserialize<'de> for BetterString {
             where
                 E: serde::de::Error,
             {
-                Ok(BetterString {
-                    bytes: v.to_vec(),
-                })
+                Ok(BetterString { bytes: v.to_vec() })
             }
 
             // Handle string input
@@ -234,8 +258,8 @@ impl BetterString {
 impl BetterString {
     /// Converts the string to base64 encoding
     #[must_use]
-    pub fn to_base64(&self) -> String {
-        general_purpose::STANDARD.encode(&self.bytes)
+    pub fn to_base64(&self) -> Self {
+        Self::new(general_purpose::STANDARD.encode(&self.bytes))
     }
 
     /// Attempts to decode a base64 string
@@ -243,7 +267,7 @@ impl BetterString {
     /// # Errors
     ///
     /// Returns a `BStringError::EncodingError` if the input string is not valid base64
-    pub fn from_base64(encoded: &str) -> Result<Self, BStringError> {
+    pub fn from_base64(encoded: &Self) -> Result<Self, BStringError> {
         general_purpose::STANDARD
             .decode(encoded)
             .map_err(|e| BStringError::EncodingError(e.to_string()))
@@ -253,11 +277,11 @@ impl BetterString {
     /// Converts the string to URL-safe encoding
     #[allow(clippy::option_if_let_else)]
     #[must_use]
-    pub fn to_url_encoded(&self) -> String {
+    pub fn to_url_encoded(&self) -> Self {
         if let Ok(s) = std::str::from_utf8(&self.bytes) {
-            urlencoding::encode(s).into_owned()
+            Self::new(urlencoding::encode(s))
         } else {
-            String::new()
+            Self::empty()
         }
     }
 
@@ -267,10 +291,16 @@ impl BetterString {
     ///
     /// Returns `BStringError::EncodingError` if the input string contains invalid URL-encoded characters
     /// or malformed percent-encoding sequences.
-    pub fn from_url_encoded(encoded: &str) -> Result<Self, BStringError> {
+    pub fn from_url_encoded(encoded: &Self) -> Result<Self, BStringError> {
         urlencoding::decode(encoded)
             .map_err(|e| BStringError::EncodingError(e.to_string()))
             .map(|s| Self::new(s.to_string()))
+    }
+
+    /// Returns an empty `BetterString`.
+    #[must_use]
+    pub fn empty() -> Self {
+        Self::new("")
     }
 }
 
@@ -283,12 +313,12 @@ impl BetterString {
     /// Panics if creating a new `RegEx` from the escaped pattern fails.
     #[allow(clippy::option_if_let_else)]
     #[must_use]
-    pub fn find_all(&self, pattern: &str) -> Vec<(usize, String)> {
+    pub fn find_all(&self, pattern: &str) -> Vec<(usize, Self)> {
         if let Ok(s) = std::str::from_utf8(&self.bytes) {
             let re = regex::Regex::new(pattern)
                 .unwrap_or_else(|_| regex::Regex::new(&regex::escape(pattern)).unwrap());
             re.find_iter(s)
-                .map(|m| (m.start(), m.as_str().to_string()))
+                .map(|m| (m.start(), Self::from(m.as_str().to_string())))
                 .collect()
         } else {
             Vec::new()
@@ -394,26 +424,32 @@ impl BetterString {
 
     /// Returns an uppercase version of the string
     #[must_use]
-    pub fn to_uppercase(&self) -> String {
-        std::str::from_utf8(&self.bytes)
-            .map(str::to_uppercase)
-            .unwrap_or_default()
+    pub fn to_uppercase(&self) -> Self {
+        Self::new(
+            std::str::from_utf8(&self.bytes)
+                .map(str::to_uppercase)
+                .unwrap_or_default(),
+        )
     }
 
     /// Returns a lowercase version of the string
     #[must_use]
-    pub fn to_lowercase(&self) -> String {
-        std::str::from_utf8(&self.bytes)
-            .map(str::to_lowercase)
-            .unwrap_or_default()
+    pub fn to_lowercase(&self) -> Self {
+        Self::new(
+            std::str::from_utf8(&self.bytes)
+                .map(str::to_lowercase)
+                .unwrap_or_default(),
+        )
     }
 
     /// Returns a string with whitespace removed from both ends
     #[must_use]
-    pub fn trim(&self) -> String {
-        std::str::from_utf8(&self.bytes)
-            .map(|s| s.trim().to_string())
-            .unwrap_or_default()
+    pub fn trim(&self) -> Self {
+        Self::new(
+            std::str::from_utf8(&self.bytes)
+                .map(|s| s.trim().to_string())
+                .unwrap_or_default(),
+        )
     }
 
     /// Splits the string by the given delimiter
@@ -421,9 +457,11 @@ impl BetterString {
     /// # Arguments
     /// * `delimiter` - The string to split on
     #[allow(clippy::option_if_let_else)]
-    pub fn split(&self, delimiter: &str) -> Vec<String> {
+    #[must_use] pub fn split(&self, delimiter: &str) -> Vec<Self> {
         if let Ok(s) = std::str::from_utf8(&self.bytes) {
-            s.split(delimiter).map(String::from).collect()
+            s.split(delimiter)
+                .map(|s| Self::from(s.to_string()))
+                .collect()
         } else {
             Vec::new()
         }
@@ -431,10 +469,12 @@ impl BetterString {
 
     /// Returns a new string with all occurrences of `from` replaced with `to`
     #[must_use]
-    pub fn replace(&self, from: &str, to: &str) -> String {
-        std::str::from_utf8(&self.bytes)
-            .map(|s| s.replace(from, to))
-            .unwrap_or_default()
+    pub fn replace(&self, from: &str, to: &str) -> Self {
+        Self::new(
+            std::str::from_utf8(&self.bytes)
+                .map(|s| s.replace(from, to))
+                .unwrap_or_default(),
+        )
     }
 
     /// Returns true if the string contains the given substring
@@ -515,15 +555,14 @@ impl BetterString {
     /// Returns `BStringError::InvalidOperation` if `start` is after `end`, `start` is past the string's end,
     /// or `end` is past the string's end.
     /// Returns `BStringError::InvalidUtf8` if the new string will contain an invalid UTF-8 character
-    // TODO: for all methods that return String or similar, make them return BString instead.
-    pub fn substring(&self, start: usize, end: usize) -> Result<String, BStringError> {
+    pub fn substring(&self, start: usize, end: usize) -> Result<Self, BStringError> {
         if start >= self.len() || end > self.len() || start > end {
             return Err(BStringError::InvalidOperation(
                 "Invalid substring indices".to_string(),
             ));
         }
 
-        String::from_utf8(self.bytes[start..end].to_vec())
+        String::from_utf8(self.bytes[start..end].to_vec()).map(Self::new)
             .map_err(|e| BStringError::InvalidUtf8(e.to_string()))
     }
 
@@ -532,6 +571,10 @@ impl BetterString {
     pub fn word_count(&self) -> usize {
         std::str::from_utf8(&self.bytes).map_or(0, |s| s.split_whitespace().count())
     }
+    #[must_use]
+    pub fn as_str(&self) -> &str {
+        std::str::from_utf8(&self.bytes).unwrap_or("")
+    }    
 }
 
 // Implement basic arithmetic operations
@@ -708,7 +751,7 @@ impl BetterString {
     /// * The string is empty
     /// * The delimiter is empty
     /// * The string contains invalid UTF-8
-    pub fn safe_split(&self, delimiter: &str) -> Result<Vec<String>, BStringError> {
+    pub fn safe_split(&self, delimiter: &str) -> Result<Vec<Self>, BStringError> {
         if self.is_empty() {
             return Err(BStringError::EmptyString);
         }
@@ -719,7 +762,10 @@ impl BetterString {
         }
 
         match std::str::from_utf8(&self.bytes) {
-            Ok(s) => Ok(s.split(delimiter).map(String::from).collect()),
+            Ok(s) => Ok(s
+                .split(delimiter)
+                .map(|s| Self::from(s.to_string()))
+                .collect()),
             Err(e) => Err(BStringError::InvalidUtf8(e.to_string())),
         }
     }
@@ -736,7 +782,7 @@ impl From<BetterString> for String {
 impl Display for BetterString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match std::str::from_utf8(&self.bytes) {
-            Ok(s) => write!(f, "{s}"),
+            Ok(s) => write!(f, "{}", s),
             Err(_) => write!(f, "<invalid utf-8>"),
         }
     }
@@ -769,40 +815,33 @@ impl FromStr for BetterString {
     }
 }
 
-impl AsRef<[u8]> for BetterString
-{
+impl AsRef<[u8]> for BetterString {
     fn as_ref(&self) -> &[u8] {
         &self.bytes
     }
 }
-impl AsMut<[u8]> for BetterString
-{
+impl AsMut<[u8]> for BetterString {
     fn as_mut(&mut self) -> &mut [u8] {
         &mut self.bytes
     }
 }
 
-impl From<Vec<u8>> for BetterString
-{
+impl From<Vec<u8>> for BetterString {
     fn from(value: Vec<u8>) -> Self {
-        Self
-        {
-            bytes: value
-        }
+        Self { bytes: value }
     }
 }
 
-// TODO: see if this is correct or not
-impl Deref for BetterString
-{
-    type Target = Vec<u8>;
+impl Deref for BetterString {
+    type Target = str;
+
     fn deref(&self) -> &Self::Target {
-        &self.bytes
+        unsafe { std::str::from_utf8_unchecked(&self.bytes) }
     }
 }
-impl DerefMut for BetterString
-{
+
+impl DerefMut for BetterString {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.bytes
+        unsafe { std::str::from_utf8_unchecked_mut(&mut self.bytes) }
     }
 }

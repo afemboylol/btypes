@@ -3,6 +3,7 @@ use crate::error::BBoolError;
 use crate::traits::{BitwiseOpsClone, BitwiseOpsCopy, Nums};
 use anyhow::Error;
 use anyhow::Result;
+use std::fmt::Display;
 use std::{collections::HashMap, marker::PhantomData};
 
 /// Type alias for a 128-bit named `BetterBool`
@@ -186,7 +187,7 @@ impl<T: BitwiseOpsCopy> BetterBoolNamed<T> {
     /// Returns an error if:
     /// * Any of the names don't exist in the collection
     /// * Retrieving any value fails
-    pub fn mass_get(&self, names: &[&str]) -> Result<Vec<bool>> {
+    pub fn mass_get(&self, names: &[&str]) -> Result<Vec<bool>, BBoolError> {
         let mut out = Vec::with_capacity(names.len());
         for name in names {
             out.push(self.get(name)?);
@@ -215,7 +216,7 @@ impl<T: BitwiseOpsCopy> BetterBoolNamed<T> {
     /// Returns an error if:
     /// * Any of the names don't exist in the collection
     /// * Toggling any value fails
-    pub fn mass_toggle(&mut self, names: &[&str]) -> Result<()> {
+    pub fn mass_toggle(&mut self, names: &[&str]) -> Result<(), BBoolError> {
         for name in names {
             self.toggle(name)?;
         }
@@ -239,7 +240,7 @@ impl<T: BitwiseOpsCopy> BetterBoolNamed<T> {
     ///
     /// # Errors
     /// Returns an error if the sorting operation fails
-    pub fn sort(&mut self) -> Result<()> {
+    pub fn sort(&mut self) -> Result<(), BBoolError> {
         let b = self.sorted()?;
         self.names = b.names;
         self.bools = b.bools;
@@ -262,7 +263,7 @@ impl<T: BitwiseOpsCopy> BetterBoolNamed<T> {
     ///
     /// # Errors
     /// Returns an error if the sorting operation fails
-    pub fn sorted(&self) -> Result<Self> {
+    pub fn sorted(&self) -> Result<Self, BBoolError> {
         // Get all name-value pairs and sort them by name
         let mut pairs: Vec<_> = self.all()?.into_iter().collect();
         pairs.sort_by(|(a, _), (b, _)| a.cmp(b));
@@ -294,7 +295,7 @@ impl<T: BitwiseOpsCopy> BetterBoolNamed<T> {
     ///
     /// # Errors
     /// Returns an error if retrieving any boolean value fails
-    pub fn all_bools(&self) -> Result<Vec<bool>> {
+    pub fn all_bools(&self) -> Result<Vec<bool>, BBoolError> {
         self.bools.all()
     }
     /// Returns a clone of the internal name-to-position mapping.
@@ -346,7 +347,7 @@ impl<T: BitwiseOpsCopy> BetterBoolNamed<T> {
     ///
     /// # Errors
     /// Returns an error if retrieving any boolean value fails
-    pub fn all(&self) -> Result<HashMap<String, bool>> {
+    pub fn all(&self) -> Result<HashMap<String, bool>, BBoolError> {
         let mut result = HashMap::new();
         for (name, &position) in &self.names {
             result.insert(name.clone(), self.bools.get_at_pos(position)?);
@@ -375,7 +376,7 @@ impl<T: BitwiseOpsCopy> BetterBoolNamed<T> {
     /// Returns an error if:
     /// * Setting the value fails
     /// * Adding a new value fails
-    pub fn set(&mut self, name: &str, value: bool) -> Result<()> {
+    pub fn set(&mut self, name: &str, value: bool) -> Result<(), BBoolError> {
         match self.names.get(name) {
             Some(&position) => self.bools.set_at_pos(position, value)?,
             None => self.add(name, value)?,
@@ -403,7 +404,7 @@ impl<T: BitwiseOpsCopy> BetterBoolNamed<T> {
     /// Returns an error if:
     /// * The name doesn't exist in the collection
     /// * Setting the toggled value fails
-    pub fn toggle(&mut self, name: &str) -> Result<()> {
+    pub fn toggle(&mut self, name: &str) -> Result<(), BBoolError> {
         let current = self.get(name)?;
         self.set(name, !current)?;
         Ok(())
@@ -523,7 +524,7 @@ impl<T: BitwiseOpsCopy> BetterBoolNamed<T> {
     /// # Errors
     /// Returns an error if:
     /// * Setting the value to false before deletion fails
-    pub fn delete(&mut self, name: &str) -> Result<()> {
+    pub fn delete(&mut self, name: &str) -> Result<(), BBoolError> {
         if self.names.contains_key(name) {
             self.set(name, false)?;
             self.names.remove(name);
@@ -585,4 +586,10 @@ impl<T: BitwiseOpsCopy> IntoIterator for BetterBoolNamed<T>
     fn into_iter(self) -> Self::IntoIter {
         self.all().expect("Failed to get all contained bools").into_iter()
     }   
+}
+
+impl<T: BitwiseOpsCopy> Display for BetterBoolNamed<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:#?}", self.all())
+    }
 }

@@ -21,7 +21,7 @@ pub type BBool<T> = BetterBool<T>;
 ///
 /// This struct provides bit-level boolean storage and operations using
 /// various integer types as the underlying storage mechanism.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct BetterBool<T: Nums> {
     /// The numeric value storing the boolean bits
     pub(crate) store: T,
@@ -97,7 +97,7 @@ impl<T: BitwiseOpsCopy> BetterBool<T> {
     ///
     /// # Errors
     /// Returns an error if accessing any position fails
-    pub fn all(&self) -> Result<Vec<bool>> {
+    pub fn all(&self) -> Result<Vec<bool>, BBoolError> {
         let mut out = vec![];
         for i in 0..Self::CAP {
             out.push(self.get_at_pos(i)?);
@@ -120,7 +120,7 @@ impl<T: BitwiseOpsCopy> BetterBool<T> {
     ///
     /// # Errors
     /// Returns an error if sorting operation fails
-    pub fn sorted(&self) -> Result<Self> {
+    pub fn sorted(&self) -> Result<Self, BBoolError> {
         let mut bools = self.all()?;
         bools.sort_unstable();
 
@@ -341,7 +341,7 @@ impl<T: BitwiseOpsCopy> BetterBool<T> {
     /// Returns an error if:
     /// * Getting the current value fails
     /// * Incrementing the head position fails
-    pub fn next_b(&mut self) -> Result<bool> {
+    pub fn next_b(&mut self) -> Result<bool, BBoolError> {
         let val = self.get()?;
         self.inc()?;
         Ok(val)
@@ -365,7 +365,7 @@ impl<T: BitwiseOpsCopy> BetterBool<T> {
     /// * Getting the current value fails
     /// * Setting the value fails
     /// * Incrementing the head position fails
-    pub fn next_b_res(&mut self) -> Result<bool> {
+    pub fn next_b_res(&mut self) -> Result<bool, BBoolError> {
         let val = self.get()?;
         self.set(false)?;
         self.inc()?;
@@ -579,3 +579,5 @@ impl<T: BitwiseOpsCopy> IntoIterator for BetterBool<T>
         self.all().expect("Failed to get all bool values contained").into_iter()
     }
 }
+
+impl<T: Copy + Nums> Copy for BetterBool<T> {}

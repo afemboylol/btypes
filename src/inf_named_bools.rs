@@ -2,6 +2,7 @@ use crate::error::BBoolError;
 use crate::inf_bbool::BetterBoolInf;
 use anyhow::Error;
 use anyhow::Result;
+use std::fmt::Display;
 use std::{collections::HashMap, marker::PhantomData};
 
 /// Type alias for the infinite-capacity named boolean collection
@@ -16,9 +17,9 @@ pub struct BetterBoolNamedInf {
     /// The underlying boolean storage
     pub bools: BetterBoolInf,
     /// Mapping of names to boolean positions
-    names: HashMap<String, u128>,
+    names: HashMap<String, usize>,
     /// Next available position for new boolean values
-    next_assign: u128,
+    next_assign: usize,
 }
 
 impl BetterBoolNamedInf {
@@ -33,7 +34,8 @@ impl BetterBoolNamedInf {
     /// let bools = BNInf::from_vec(vec![0b01010110]);
     /// ```
     ///
-    #[must_use] pub fn from_vec(initial_value: Vec<u8>) -> Self {
+    #[must_use]
+    pub fn from_vec(initial_value: Vec<u8>) -> Self {
         let bools = BetterBoolInf {
             store: initial_value,
             reader_head_pos: 0,
@@ -54,7 +56,8 @@ impl BetterBoolNamedInf {
     /// let bools = BNInf::new();
     /// ```
     ///
-    #[must_use] pub fn new() -> Self {
+    #[must_use]
+    pub fn new() -> Self {
         Self::default()
     }
 
@@ -91,7 +94,7 @@ impl BetterBoolNamedInf {
     /// * Adding the bools would exceed capacity
     pub fn mass_set(
         &mut self,
-        count: u128,
+        count: usize,
         pattern: &str,
         value_pattern: &str,
     ) -> Result<(), BBoolError> {
@@ -107,7 +110,7 @@ impl BetterBoolNamedInf {
                 "Value pattern cannot be empty".to_string(),
             ));
         }
-        if !value_pattern.contains("{r}") && value_parts.len() < count as usize {
+        if !value_pattern.contains("{r}") && value_parts.len() < count {
             println!("{}, {}", !value_parts.contains(&"{r}"), value_parts.len());
             return Err(BBoolError::InvalidPattern(
                 "Value pattern must be able to fill all set bools".to_string(),
@@ -128,14 +131,16 @@ impl BetterBoolNamedInf {
         for i in 0..count {
             let name = pattern.replace("{n}", &i.to_string());
             let value_index = if repeating {
-                (i as usize) % values.len()
+                i % values.len()
             } else {
-                if i as usize >= values.len() {
-                    let last = values.last().ok_or_else(|| BBoolError::Other("Failed to get last element of values.".to_string()))?;
+                if i >= values.len() {
+                    let last = values.last().ok_or_else(|| {
+                        BBoolError::Other("Failed to get last element of values.".to_string())
+                    })?;
                     self.set(&name, *last)?;
                     continue;
                 }
-                i as usize
+                i
             };
             self.set(&name, values[value_index])?;
         }
@@ -165,7 +170,7 @@ impl BetterBoolNamedInf {
     /// Returns an error if:
     /// * Any of the names don't exist in the collection
     /// * Retrieving any value fails
-    pub fn mass_get(&self, names: &[&str]) -> Result<Vec<bool>> {
+    pub fn mass_get(&self, names: &[&str]) -> Result<Vec<bool>, BBoolError> {
         let mut out = Vec::with_capacity(names.len());
         for name in names {
             out.push(self.get(name)?);
@@ -195,7 +200,7 @@ impl BetterBoolNamedInf {
     /// Returns an error if:
     /// * Any of the names don't exist in the collection
     /// * Toggling any value fails
-    pub fn mass_toggle(&mut self, names: &[&str]) -> Result<()> {
+    pub fn mass_toggle(&mut self, names: &[&str]) -> Result<(), BBoolError> {
         for name in names {
             self.toggle(name)?;
         }
@@ -220,7 +225,7 @@ impl BetterBoolNamedInf {
     ///
     /// # Errors
     /// Returns an error if the sorting operation fails
-    pub fn sort(&mut self) -> Result<()> {
+    pub fn sort(&mut self) -> Result<(), BBoolError> {
         let b = self.sorted()?;
         self.names = b.names;
         self.bools = b.bools;
@@ -244,7 +249,7 @@ impl BetterBoolNamedInf {
     ///
     /// # Errors
     /// Returns an error if the sorting operation fails
-    pub fn sorted(&self) -> Result<Self> {
+    pub fn sorted(&self) -> Result<Self, BBoolError> {
         let mut pairs: Vec<_> = self.all()?.into_iter().collect();
         pairs.sort_by(|(a, _), (b, _)| a.cmp(b));
 
@@ -274,7 +279,7 @@ impl BetterBoolNamedInf {
     ///
     /// # Errors
     /// Returns an error if retrieving any boolean value fails
-    pub fn all_bools(&self) -> Result<Vec<bool>> {
+    pub fn all_bools(&self) -> Result<Vec<bool>, BBoolError> {
         self.bools.all()
     }
 
@@ -287,7 +292,8 @@ impl BetterBoolNamedInf {
     /// let names = bools.all_names_cl();
     /// ```
     ///
-    #[must_use] pub fn all_names_cl(&self) -> HashMap<String, u128> {
+    #[must_use]
+    pub fn all_names_cl(&self) -> HashMap<String, usize> {
         self.names.clone()
     }
 
@@ -300,7 +306,8 @@ impl BetterBoolNamedInf {
     /// let names = bools.all_names();
     /// ```
     ///
-    #[must_use] pub const fn all_names(&self) -> &HashMap<String, u128> {
+    #[must_use]
+    pub const fn all_names(&self) -> &HashMap<String, usize> {
         &self.names
     }
 
@@ -313,7 +320,7 @@ impl BetterBoolNamedInf {
     /// let names_mut = bools.all_names_mut();
     /// ```
     ///
-    pub fn all_names_mut(&mut self) -> &mut HashMap<String, u128> {
+    pub fn all_names_mut(&mut self) -> &mut HashMap<String, usize> {
         &mut self.names
     }
 
@@ -333,7 +340,7 @@ impl BetterBoolNamedInf {
     ///
     /// # Errors
     /// Returns an error if retrieving any boolean value fails
-    pub fn all(&self) -> Result<HashMap<String, bool>> {
+    pub fn all(&self) -> Result<HashMap<String, bool>, BBoolError> {
         let mut result = HashMap::new();
         for (name, &position) in &self.names {
             result.insert(name.clone(), self.bools.get_at_pos(position)?);
@@ -360,7 +367,7 @@ impl BetterBoolNamedInf {
     ///
     /// # Errors
     /// Returns an error if setting the value fails
-    pub fn set(&mut self, name: &str, value: bool) -> Result<()> {
+    pub fn set(&mut self, name: &str, value: bool) -> Result<(), BBoolError> {
         match self.names.get(name) {
             Some(&position) => self.bools.set_at_pos(position, value)?,
             None => self.add(name, value)?,
@@ -387,7 +394,7 @@ impl BetterBoolNamedInf {
     ///
     /// # Errors
     /// Returns an error if the name doesn't exist or toggling fails
-    pub fn toggle(&mut self, name: &str) -> Result<()> {
+    pub fn toggle(&mut self, name: &str) -> Result<(), BBoolError> {
         let current = self.get(name)?;
         self.set(name, !current)?;
         Ok(())
@@ -405,6 +412,7 @@ impl BetterBoolNamedInf {
     /// let exists = bools.exists("test");
     /// ```
     ///
+    #[must_use]
     pub fn exists(&self, name: &str) -> bool {
         self.names.contains_key(name)
     }
@@ -418,7 +426,8 @@ impl BetterBoolNamedInf {
     /// let raw = bools.get_raw();
     /// ```
     ///
-    #[must_use] pub const fn get_raw(&self) -> &Vec<u8> {
+    #[must_use]
+    pub const fn get_raw(&self) -> &Vec<u8> {
         self.bools.get_raw()
     }
 
@@ -457,7 +466,7 @@ impl BetterBoolNamedInf {
     /// * The collection capacity is reached
     /// * Setting the value fails
     pub fn add(&mut self, name: &str, value: bool) -> Result<(), BBoolError> {
-        if self.names.len() >= u128::MAX as usize {
+        if self.names.len() > usize::MAX {
             return Err(BBoolError::CollectionCapacityReached);
         }
         self.names.insert(name.to_string(), self.next_assign);
@@ -511,7 +520,7 @@ impl BetterBoolNamedInf {
     ///
     /// # Errors
     /// Returns an error if setting the value to false fails
-    pub fn delete(&mut self, name: &str) -> Result<()> {
+    pub fn delete(&mut self, name: &str) -> Result<(), BBoolError> {
         if self.names.contains_key(name) {
             self.set(name, false)?;
             self.names.remove(name);
@@ -534,12 +543,19 @@ impl BetterBoolNamedInf {
     }
 }
 
-impl IntoIterator for BetterBoolNamedInf
-{
+impl IntoIterator for BetterBoolNamedInf {
     type Item = (String, bool);
     type IntoIter = std::collections::hash_map::IntoIter<String, bool>;
-    
+
     fn into_iter(self) -> Self::IntoIter {
-        self.all().expect("Failed to get all contained bools").into_iter()
-    }   
+        self.all()
+            .expect("Failed to get all contained bools")
+            .into_iter()
+    }
+}
+
+impl Display for BetterBoolNamedInf {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:#?}", self.all())
+    }
 }

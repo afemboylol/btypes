@@ -27,6 +27,7 @@ fn main() -> Result<()> {
 
 For more examples, see the individual module documentation.
 "]
+#![feature(str_as_str)]
 #[cfg(feature = "named_bools")]
 /// Named boolean collections with fixed capacity
 ///

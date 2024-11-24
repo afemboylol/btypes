@@ -15,7 +15,7 @@ pub struct BetterBoolInf {
     /// The vector storing the boolean bits as bytes
     pub(crate) store: Vec<u8>,
     /// Current position of the reader head
-    pub(crate) reader_head_pos: u128,
+    pub(crate) reader_head_pos: usize,
     /// Phantom data for the vector type
     pub(crate) _marker: PhantomData<Vec<u8>>,
 }
@@ -31,8 +31,8 @@ impl Default for BetterBoolInf {
 }
 
 impl BetterBoolInf {
-    /// The limit of the "Infinite" `BetterBool` will unfortunately be finite, due to limitations of the head position without unnecessary complexity.
-    pub const CAP: u128 = u128::MAX;
+    /// The limit of the "Infinite" `BetterBool`.Uunfortunately finite, due to limitations of the head position (limited to u128::MAX theoretically) and the max Vec size (usize::MAX) without unnecessary complexity.
+    pub const CAP: usize = usize::MAX;
 }
 
 impl BetterBoolInf {
@@ -80,11 +80,11 @@ impl BetterBoolInf {
     ///
     /// # Errors
     /// Returns an error if accessing any position fails
-    pub fn all(&self) -> Result<Vec<bool>> {
+    pub fn all(&self) -> Result<Vec<bool>, BBoolError> {
         let mut out = vec![];
         // Multiply by 8 since each byte contains 8 bits
         for i in 0..(self.store.len() * 8) {
-            out.push(self.get_at_pos(i.try_into()?)?);
+            out.push(self.get_at_pos(i)?);
         }
         Ok(out)
     }
@@ -104,13 +104,13 @@ impl BetterBoolInf {
     ///
     /// # Errors
     /// Returns an error if sorting operation fails
-    pub fn sorted(&self) -> Result<Self> {
+    pub fn sorted(&self) -> Result<Self, BBoolError> {
         let mut bools = self.all()?;
         bools.sort_unstable();
 
         let mut sorted = Self::new();
         for (i, &value) in bools.iter().enumerate() {
-            sorted.set_at_pos(i.try_into()?, value)?;
+            sorted.set_at_pos(i, value)?;
         }
         Ok(sorted)
     }
@@ -132,7 +132,7 @@ impl BetterBoolInf {
     /// Returns an error if head position is invalid
     pub fn get(&self) -> Result<bool, BBoolError> {
         if self.reader_head_pos < Self::CAP {
-            let byte_index = (self.reader_head_pos / 8) as usize;
+            let byte_index = self.reader_head_pos / 8;
             let bit_offset = self.reader_head_pos % 8;
 
             if byte_index >= self.store.len() {
@@ -163,9 +163,9 @@ impl BetterBoolInf {
     ///
     /// # Errors
     /// Returns an error if position is invalid
-    pub fn get_at_pos(&self, pos: u128) -> Result<bool, BBoolError> {
+    pub fn get_at_pos(&self, pos: usize) -> Result<bool, BBoolError> {
         if pos < Self::CAP {
-            let byte_index = (pos / 8) as usize;
+            let byte_index = pos / 8;
             let bit_offset = pos % 8;
 
             if byte_index >= self.store.len() {
@@ -183,7 +183,7 @@ impl BetterBoolInf {
     /// # Safety
     /// This function performs no bounds checking. The caller must ensure the head position is valid.
     #[must_use] pub unsafe fn get_unchecked(&self) -> bool {
-        let byte_index = (self.reader_head_pos / 8) as usize;
+        let byte_index = self.reader_head_pos / 8;
         let bit_offset = self.reader_head_pos % 8;
 
         if byte_index >= self.store.len() {
@@ -201,8 +201,8 @@ impl BetterBoolInf {
     ///
     /// # Safety
     /// This function performs no bounds checking. the position is valid.
-    #[must_use] pub unsafe fn get_unchecked_at_pos(&self, pos: u128) -> bool {
-        let byte_index = (pos / 8) as usize;
+    #[must_use] pub unsafe fn get_unchecked_at_pos(&self, pos: usize) -> bool {
+        let byte_index = pos / 8;
         let bit_offset = pos % 8;
 
         if byte_index >= self.store.len() {
@@ -221,7 +221,7 @@ impl BetterBoolInf {
     /// # Safety
     /// This function performs no bounds checking. The caller must ensure the head position is valid.
     pub unsafe fn set_unchecked(&mut self, new: bool) {
-        let byte_index = (self.reader_head_pos / 8) as usize;
+        let byte_index = self.reader_head_pos / 8;
         let bit_offset = self.reader_head_pos % 8;
 
         while byte_index >= self.store.len() {
@@ -244,8 +244,8 @@ impl BetterBoolInf {
     ///
     /// # Safety
     /// This function performs no bounds checking. The caller must ensure the position is valid.
-    pub unsafe fn set_unchecked_at_pos(&mut self, pos: u128, new: bool) {
-        let byte_index = (pos / 8) as usize;
+    pub unsafe fn set_unchecked_at_pos(&mut self, pos: usize, new: bool) {
+        let byte_index = pos / 8;
         let bit_offset = pos % 8;
 
         while byte_index >= self.store.len() {
@@ -304,7 +304,7 @@ impl BetterBoolInf {
     /// Returns an error if head position is invalid
     pub fn set(&mut self, new: bool) -> Result<(), BBoolError> {
         if self.reader_head_pos < Self::CAP {
-            let byte_index = (self.reader_head_pos / 8) as usize;
+            let byte_index = self.reader_head_pos / 8;
             let bit_offset = self.reader_head_pos % 8;
 
             // Extend the vector if necessary
@@ -342,9 +342,9 @@ impl BetterBoolInf {
     ///
     /// # Errors
     /// Returns an error if position is invalid
-    pub fn set_at_pos(&mut self, pos: u128, new: bool) -> Result<(), BBoolError> {
+    pub fn set_at_pos(&mut self, pos: usize, new: bool) -> Result<(), BBoolError> {
         if pos < Self::CAP {
-            let byte_index = (pos / 8) as usize;
+            let byte_index = pos / 8;
             let bit_offset = pos % 8;
 
             // Extend the vector if necessary
@@ -380,7 +380,7 @@ impl BetterBoolInf {
     /// Returns an error if:
     /// * Getting the current value fails
     /// * Incrementing the head position fails
-    pub fn next_b(&mut self) -> Result<bool> {
+    pub fn next_b(&mut self) -> Result<bool, BBoolError> {
         let val = self.get()?;
         self.inc()?;
         Ok(val)
@@ -404,7 +404,7 @@ impl BetterBoolInf {
     /// * Getting the current value fails
     /// * Setting the value fails
     /// * Incrementing the head position fails
-    pub fn next_b_res(&mut self) -> Result<bool> {
+    pub fn next_b_res(&mut self) -> Result<bool, BBoolError> {
         let val = self.get()?;
         self.set(false)?;
         self.inc()?;
@@ -449,7 +449,7 @@ impl BetterBoolInf {
     ///
     /// # Safety
     /// This function performs no bounds checking. The caller must ensure the new head position is valid.
-    pub unsafe fn shp_unchecked(&mut self, new: u128) {
+    pub unsafe fn shp_unchecked(&mut self, new: usize) {
         self.reader_head_pos = new;
     }
 
@@ -471,7 +471,7 @@ impl BetterBoolInf {
     ///
     /// # Errors
     /// Returns an error if the new head position would be invalid
-    pub fn shp(&mut self, new: u128) -> Result<(), BBoolError> {
+    pub fn shp(&mut self, new: usize) -> Result<(), BBoolError> {
         if new < Self::CAP {
             self.reader_head_pos = new;
             return Ok(());
@@ -488,7 +488,7 @@ impl BetterBoolInf {
     /// let head_pos = bools.ghp();
     /// ```
     ///
-    #[must_use] pub const fn ghp(&self) -> &u128 {
+    #[must_use] pub const fn ghp(&self) -> &usize {
         &self.reader_head_pos
     }
 
@@ -501,7 +501,7 @@ impl BetterBoolInf {
     /// let head_pos_mut = bools.ghp_mut();
     /// ```
     ///
-    pub fn ghp_mut(&mut self) -> &mut u128 {
+    pub fn ghp_mut(&mut self) -> &mut usize {
         &mut self.reader_head_pos
     }
 

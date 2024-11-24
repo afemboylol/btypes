@@ -32,15 +32,17 @@ pub enum BBoolError {
     /// Error when specified position is invalid for fixed-size collections
     InvalidPos(u8),
     /// Error when head position is invalid for infinite collections
-    InvalidHeadPosInf(u128),
+    InvalidHeadPosInf(usize),
     /// Error when specified position is invalid for infinite collections
-    InvalidPosInf(u128),
+    InvalidPosInf(usize),
     /// Error when a named boolean value cannot be found
     NotFound(String),
     /// Error when a pattern string is invalid
     InvalidPattern(String),
     /// Error when attempting to exceed collection capacity
     CollectionCapacityReached,
+    /// Error when something went wrong internally, such as converting an index from usize to u128.
+    InternalError(String, String),
     /// Error for other miscellaneous error conditions
     Other(String),
 }
@@ -59,6 +61,7 @@ impl Display for BBoolError {
                 Self::InvalidPattern(pat) => format!("Invalid pattern: {pat}"),
                 Self::CollectionCapacityReached =>
                     "Collection capacity has been reached".to_string(),
+                Self::InternalError(t, e) => format!("Internal error of type {t}: {e}"),
                 Self::Other(s) => s.to_string(),
             }
         )
