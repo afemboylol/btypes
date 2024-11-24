@@ -56,7 +56,8 @@ impl<T: BitwiseOpsCopy> BetterBool<T> {
     /// use btypes::bbool::B128;
     /// let bools = B128::new();
     /// ```
-    #[must_use] pub fn new() -> Self {
+    #[must_use]
+    pub fn new() -> Self {
         Self {
             store: T::zero(),
             reader_head_pos: 0,
@@ -131,6 +132,47 @@ impl<T: BitwiseOpsCopy> BetterBool<T> {
             sorted.set_at_pos(i as u8, value)?;
         }
         Ok(sorted)
+    }
+
+    /// Returns a Vec of boolean values within the specified range [start, end).
+    ///
+    /// # Arguments
+    /// * `start` - The starting position (inclusive)
+    /// * `end` - The ending position (exclusive)
+    ///
+    /// # Examples
+    /// ```
+    /// use btypes::bbool::B8;
+    /// use anyhow::Result;
+    /// fn main() -> Result<()> {
+    ///     let bools = B8::from_num(5);
+    ///     let range_values = bools.range(0, 4)?;
+    ///     Ok(())
+    /// }
+    /// ```
+    ///
+    /// # Errors
+    /// Returns an error if:
+    /// * start position is invalid
+    /// * end position is invalid
+    /// * end is less than start
+    /// * accessing any position in range fails
+    pub fn range(&self, start: u8, end: u8) -> Result<Vec<bool>, BBoolError> {
+        if start >= Self::CAP {
+            return Err(BBoolError::InvalidPos(start));
+        }
+        if end > Self::CAP {
+            return Err(BBoolError::InvalidPos(end));
+        }
+        if end < start {
+            return Err(BBoolError::InvalidRange(start as usize, end as usize));
+        }
+
+        let mut result = Vec::with_capacity((end - start) as usize);
+        for pos in start..end {
+            result.push(self.get_at_pos(pos)?);
+        }
+        Ok(result)
     }
 
     /// Gets the bool at the current head position. (doesn't clone self.store)
@@ -564,19 +606,19 @@ impl<T: BitwiseOpsClone> BetterBool<T> {
     }
 }
 
-impl<T: BitwiseOpsCopy> Display for BetterBool<T>
-{
+impl<T: BitwiseOpsCopy> Display for BetterBool<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:#?}", self.all())
     }
 }
 
-impl<T: BitwiseOpsCopy> IntoIterator for BetterBool<T>
-{
+impl<T: BitwiseOpsCopy> IntoIterator for BetterBool<T> {
     type Item = bool;
     type IntoIter = std::vec::IntoIter<Self::Item>;
     fn into_iter(self) -> Self::IntoIter {
-        self.all().expect("Failed to get all bool values contained").into_iter()
+        self.all()
+            .expect("Failed to get all bool values contained")
+            .into_iter()
     }
 }
 

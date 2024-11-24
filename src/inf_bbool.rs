@@ -64,8 +64,52 @@ impl BetterBoolInf {
         }
     }
 
+    /// Returns a Vec of boolean values within the specified range [start, end).
+    ///
+    /// # Arguments
+    /// * `start` - The starting position (inclusive)
+    /// * `end` - The ending position (exclusive)
+    ///
+    /// # Examples
+    /// ```
+    /// use btypes::inf_bbool::BInf;
+    /// use anyhow::Result;
+    /// fn main() -> Result<()> {
+    ///     let mut bools = BInf::new();
+    ///     bools.set_at_pos(0, true)?;
+    ///     bools.set_at_pos(1, false)?;
+    ///     let range_bools = bools.range(0, 2)?;
+    ///     assert_eq!(range_bools, vec![true, false]);
+    ///     Ok(())
+    /// }
+    /// ```
+    ///
+    /// # Errors
+    /// Returns an error if:
+    /// * start position is invalid
+    /// * end position is invalid
+    /// * end is less than start
+    /// * accessing any position in range fails
+    pub fn range(&self, start: usize, end: usize) -> Result<Vec<bool>, BBoolError> {
+        if start >= Self::CAP {
+            return Err(BBoolError::InvalidPosInf(start));
+        }
+        if end > Self::CAP {
+            return Err(BBoolError::InvalidPosInf(end));
+        }
+        if end < start {
+            return Err(BBoolError::InvalidRange(start, end));
+        }
+
+        let mut result = Vec::with_capacity(end - start);
+        for pos in start..end {
+            result.push(self.get_at_pos(pos)?);
+        }
+        Ok(result)
+    }
+
     /// Returns the current capacity of the internal vector, in bits.
-    /// 
+    ///
     /// # Examples
     /// ```
     /// use btypes::inf_bbool::BInf;

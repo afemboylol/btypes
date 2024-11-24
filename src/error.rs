@@ -35,6 +35,8 @@ pub enum BBoolError {
     InvalidHeadPosInf(usize),
     /// Error when specified position is invalid for infinite collections
     InvalidPosInf(usize),
+    /// Error when a range is invalid for a collection.
+    InvalidRange(usize, usize),
     /// Error when a named boolean value cannot be found
     NotFound(String),
     /// Error when a pattern string is invalid
@@ -57,6 +59,7 @@ impl Display for BBoolError {
                 Self::InvalidPos(pos) => format!("Invalid position: {pos}"),
                 Self::InvalidHeadPosInf(pos) => format!("Invalid head position: {pos}"),
                 Self::InvalidPosInf(pos) => format!("Invalid position: {pos}"),
+                Self::InvalidRange(a, b) => format!("Invalid range {a} - {b}"),
                 Self::NotFound(item) => format!("Item not found: {item}"),
                 Self::InvalidPattern(pat) => format!("Invalid pattern: {pat}"),
                 Self::CollectionCapacityReached =>
