@@ -407,6 +407,23 @@ mod inf_named_bools_tests {
     }
 
     #[test]
+    fn test_cap() -> Result<()> {
+        let mut bool = BNInf::with_cap(8);
+        bool.set("test1", true)?;
+        bool.set("test2", true)?;
+
+        assert!(bool.cap() == 8);
+
+        let mut bool2 = BNInf::with_cap(9);
+        bool2.set("test1", true)?;
+        bool2.set("test2", true)?;
+
+        assert!(bool.cap() == 8);
+
+        Ok(())
+    }
+
+    #[test]
     fn test_clear() -> Result<()> {
         let mut bool = BNInf::new();
         bool.set("test1", true)?;

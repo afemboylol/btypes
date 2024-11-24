@@ -1,7 +1,7 @@
 use crate::error::BBoolError;
 use anyhow::Result;
-use std::marker::PhantomData;
 use std::fmt::Display;
+use std::marker::PhantomData;
 
 /// Type alias for the infinite-capacity `BetterBool` implementation
 pub type BInf = BetterBoolInf;
@@ -43,8 +43,39 @@ impl BetterBoolInf {
     /// use btypes::inf_bbool::BInf;
     /// let bools = BInf::new();
     /// ```
-    #[must_use] pub fn new() -> Self {
+    #[must_use]
+    pub fn new() -> Self {
         Self::default()
+    }
+
+    /// Creates a new empty `BetterBoolInf` instance initialized with a vector with the specified capacity.
+    ///
+    /// # Examples
+    /// ```
+    /// use btypes::inf_bbool::BInf;
+    /// let bools = BInf::with_cap(8); // 8 bools
+    /// ```
+    #[must_use]
+    pub fn with_cap(cap: usize) -> Self {
+        Self {
+            store: Vec::with_capacity(cap / 8),
+            reader_head_pos: 0,
+            _marker: PhantomData,
+        }
+    }
+
+    /// Returns the current capacity of the internal vector, in bits.
+    /// 
+    /// # Examples
+    /// ```
+    /// use btypes::inf_bbool::BInf;
+    /// let bools = BInf::with_cap(8); // 8 bools
+    /// println!("{}", bools.cap());
+    /// assert!(bools.cap() == 8);
+    /// ```
+    #[must_use]
+    pub fn cap(&self) -> usize {
+        self.store.capacity() * 8
     }
 
     /// Creates a new `BetterBoolInf` instance with a specified initial vector of bytes.
@@ -57,7 +88,8 @@ impl BetterBoolInf {
     /// use btypes::inf_bbool::BInf;
     /// let bools = BInf::from_vec(vec![42]);
     /// ```
-    #[must_use] pub const fn from_vec(initial_value: Vec<u8>) -> Self {
+    #[must_use]
+    pub const fn from_vec(initial_value: Vec<u8>) -> Self {
         Self {
             store: initial_value,
             reader_head_pos: 0,
@@ -182,7 +214,8 @@ impl BetterBoolInf {
     ///
     /// # Safety
     /// This function performs no bounds checking. The caller must ensure the head position is valid.
-    #[must_use] pub unsafe fn get_unchecked(&self) -> bool {
+    #[must_use]
+    pub unsafe fn get_unchecked(&self) -> bool {
         let byte_index = self.reader_head_pos / 8;
         let bit_offset = self.reader_head_pos % 8;
 
@@ -201,7 +234,8 @@ impl BetterBoolInf {
     ///
     /// # Safety
     /// This function performs no bounds checking. the position is valid.
-    #[must_use] pub unsafe fn get_unchecked_at_pos(&self, pos: usize) -> bool {
+    #[must_use]
+    pub unsafe fn get_unchecked_at_pos(&self, pos: usize) -> bool {
         let byte_index = pos / 8;
         let bit_offset = pos % 8;
 
@@ -268,7 +302,8 @@ impl BetterBoolInf {
     /// let bools = BInf::from_vec(vec![5]);
     /// let raw = bools.get_raw();
     /// ```
-    #[must_use] pub const fn get_raw(&self) -> &Vec<u8> {
+    #[must_use]
+    pub const fn get_raw(&self) -> &Vec<u8> {
         &self.store
     }
 
@@ -488,7 +523,8 @@ impl BetterBoolInf {
     /// let head_pos = bools.ghp();
     /// ```
     ///
-    #[must_use] pub const fn ghp(&self) -> &usize {
+    #[must_use]
+    pub const fn ghp(&self) -> &usize {
         &self.reader_head_pos
     }
 
@@ -519,18 +555,18 @@ impl BetterBoolInf {
     }
 }
 
-impl Display for BetterBoolInf
-{
+impl Display for BetterBoolInf {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:#?}", self.all())
     }
 }
 
-impl IntoIterator for BetterBoolInf
-{
+impl IntoIterator for BetterBoolInf {
     type Item = bool;
     type IntoIter = std::vec::IntoIter<Self::Item>;
     fn into_iter(self) -> Self::IntoIter {
-        self.all().expect("Failed to get all bool values contained").into_iter()
+        self.all()
+            .expect("Failed to get all bool values contained")
+            .into_iter()
     }
 }

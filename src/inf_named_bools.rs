@@ -1,4 +1,5 @@
 use crate::error::BBoolError;
+use crate::inf_bbool::BInf;
 use crate::inf_bbool::BetterBoolInf;
 use anyhow::Error;
 use anyhow::Result;
@@ -59,6 +60,30 @@ impl BetterBoolNamedInf {
     #[must_use]
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// Creates a new empty `BetterBoolNamedInf` instance initialized with an empty vector with the specified capacity.
+    ///
+    /// # Examples
+    /// ```
+    /// use btypes::inf_named_bools::BNInf;
+    /// let bools = BNInf::with_cap(8);
+    /// ```
+    ///
+    #[must_use]
+    pub fn with_cap(cap: usize) -> Self {
+        Self
+        {
+            bools: BInf::with_cap(cap),
+            names: HashMap::new(),
+            next_assign: 0,
+        }
+    }
+
+    /// Returns the current capacity of the internal vector, in bits.
+    pub fn cap(&self) -> usize
+    {
+        self.bools.cap()
     }
 
     /// Set/add many named bools, with the names being dictated by the pattern and the values by the value pattern.
